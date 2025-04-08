@@ -5,12 +5,15 @@
 
 # Read more: https://github.com/cyu/rack-cors
 
-# Rails.application.config.middleware.insert_before 0, Rack::Cors do
-#   allow do
-#     origins "example.com"
-#
-#     resource "*",
-#       headers: :any,
-#       methods: [:get, :post, :put, :patch, :delete, :options, :head]
-#   end
-# end
+Rails.application.config.middleware.insert_before 0, Rack::Cors do
+  allow do
+    # フロントエンドのオリジンを指定
+    origins "http://localhost:3000"  # 開発環境用
+    # origins "https://your-production-domain.com"  # 本番環境用
+
+    resource "*",
+      headers: :any,
+      methods: [:get, :post, :put, :patch, :delete, :options, :head],
+      credentials: true  # クッキーや認証情報の送信を許可
+  end
+end
