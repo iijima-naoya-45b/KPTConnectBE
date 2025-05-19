@@ -1,10 +1,14 @@
 Rails.application.routes.draw do
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  namespace :api do
+    namespace :v1 do
+      # 認証
+      post "oauth/:provider", to: "oauths#oauth", as: :auth_at_provider
+      # get "oauth/callback/:provider", to: "oauths#callback", as: :callback_api_v1_oauths この記述ではエラーになる。
+      # /api/v1/oauth/callback?provider=google&code=... のようなpathパラメータではなく、クエリパラのため
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  get "up" => "rails/health#show", as: :rails_health_check
-
-  # Defines the root path route ("/")
-  # root "posts#index"
+      get "oauth/callback", to: "oauths#callback", as: :callback_api_v1_oauths
+      get "oauth/:provider", to: "oauths#oauth", as: :oauth_api_v1_oauths
+      resource :sessions, only: [:create]
+    end
+  end
 end
