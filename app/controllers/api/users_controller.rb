@@ -10,7 +10,6 @@ class Api::UsersController < ApplicationController
     public_key = fetch_google_public_key
 
     begin
-      # JWTトークンを検証
       decoded_token = JWT.decode(params[:id_token], public_key, true, { algorithm: "RS256" })
 
       # トークンが有効なら、emailやnameを取り出してDBに保存

@@ -8,7 +8,14 @@ Rails.application.routes.draw do
 
       get "oauth/callback", to: "oauths#callback", as: :callback_api_v1_oauths
       get "oauth/:provider", to: "oauths#oauth", as: :oauth_api_v1_oauths
-      resource :sessions, only: [:create]
+      
+      # セッション管理
+      resource :sessions, only: [:create] do
+        delete :logout, on: :collection
+      end
+      
+      # ユーザー情報取得
+      get "me", to: "users#me"
     end
   end
 end
