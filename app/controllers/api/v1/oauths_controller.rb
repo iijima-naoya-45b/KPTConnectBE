@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 class Api::V1::OauthsController < ApplicationController
-  include JsonWebToken
   include Sorcery::Controller
 
   def oauth
@@ -8,12 +9,13 @@ class Api::V1::OauthsController < ApplicationController
 
   def callback
     provider = auth_params[:provider]
+    
     if (user = login_from(provider))
-      redirect_to_login_with_params(user, provider)
+      redirect_to_login_with_params(user)
     else
       begin
         user = create_or_find_user_from_provider(provider)
-        redirect_to_login_with_params(user, provider)
+        redirect_to_login_with_params(user)
       rescue => e
         render json: { error: "Failed to login from #{provider.titleize}: #{e.message}" }, status: :unprocessable_entity
       end
@@ -26,20 +28,20 @@ class Api::V1::OauthsController < ApplicationController
     params.permit(:code, :provider, :scope, :authuser, :prompt)
   end
 
-  def redirect_to_login_with_params(user, provider)
-    token = JsonWebToken.encode(user_id: user.id)
-  
+  def redirect_to_login_with_params(user)
+    # トークンではなく JSON 文字列を保存
+    payload = { user_id: user.id }.to_json
+
     cookies.encrypted[:jwt] = {
-      value: token,
+      value: payload,
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax,
       expires: 1.hour.from_now
     }
-  
+
     redirect_to ENV["FRONTEND_URL"]
   end
-  
 
   def create_or_find_user_from_provider(provider)
     uid = @user_hash[:uid]
