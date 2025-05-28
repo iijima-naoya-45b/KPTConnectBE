@@ -1,8 +1,6 @@
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
-      get 'debug/jwt', to: 'users#debug_jwt'
-      get 'debug/cookies', to: 'users#debug_cookies'
       # 認証
       post "oauth/:provider", to: "oauths#oauth", as: :auth_at_provider
       # get "oauth/callback/:provider", to: "oauths#callback", as: :callback_api_v1_oauths この記述ではエラーになる。
