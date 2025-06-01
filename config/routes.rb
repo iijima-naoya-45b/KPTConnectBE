@@ -14,8 +14,110 @@ Rails.application.routes.draw do
         delete :logout, on: :collection
       end
       
-      # ユーザー情報取得
+      # ユーザー管理
       get "me", to: "users#me"
+      put "me", to: "users#update"
+      resources :users, only: [] do
+        collection do
+          get :settings
+          put :settings, to: "users#update_settings"
+          get :stats
+          delete :account, to: "users#destroy_account"
+          post :avatar, to: "users#upload_avatar"
+        end
+      end
+
+      # ダッシュボード機能
+      resources :dashboard, only: [:index] do
+        collection do
+          get :summary
+          get :stats
+          get :activity
+          get :overview
+          get :trends
+        end
+      end
+
+      # KPTセッション管理
+      resources :kpt_sessions do
+        member do
+          post :complete
+          post :save_template
+        end
+        collection do
+          get :stats
+        end
+      end
+
+      # KPTアイテム管理
+      resources :kpt_items, except: [:new, :edit] do
+        member do
+          post :complete
+          put :update_status
+        end
+        collection do
+          get :stats
+          get :trends
+        end
+      end
+
+      # 作業ログ管理
+      resources :work_logs do
+        member do
+          post :complete
+          post :link_kpt
+          delete "link_kpt/:kpt_session_id", to: "work_logs#unlink_kpt", as: :unlink_kpt
+        end
+        collection do
+          get :stats
+          get :productivity
+        end
+      end
+
+      # チャート管理
+      resources :charts do
+        member do
+          get :data
+          post :favorite
+        end
+        collection do
+          put :reorder
+        end
+      end
+
+      # サブスクリプション管理
+      resources :subscriptions do
+        member do
+          post :resume
+        end
+        collection do
+          get :plans
+          get :payments
+        end
+      end
+
+      # 通知管理
+      resources :notifications, except: [:new, :edit, :create, :update] do
+        member do
+          put :read
+        end
+        collection do
+          put :mark_all_read
+          get :settings
+          put :settings, to: "notifications#update_settings"
+          post :test
+          get :stats
+        end
+      end
+
+      # インサイト・分析機能
+      resources :insights, except: [:new, :edit] do
+        collection do
+          post :generate
+          get :patterns
+          get :recommendations
+        end
+      end
     end
   end
 end
