@@ -59,7 +59,6 @@ class Api::V1::ChartsController < ApplicationController
         message: 'チャート一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Charts index error: #{e.message}"
       render json: {
         success: false,
         error: 'チャート一覧の取得に失敗しました',
@@ -81,7 +80,6 @@ class Api::V1::ChartsController < ApplicationController
         message: 'チャート詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Chart show error: #{e.message}"
       render json: {
         success: false,
         error: 'チャート詳細の取得に失敗しました',
@@ -117,7 +115,6 @@ class Api::V1::ChartsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Chart create error: #{e.message}"
       render json: {
         success: false,
         error: 'チャートの作成中にエラーが発生しました',
@@ -148,7 +145,6 @@ class Api::V1::ChartsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Chart update error: #{e.message}"
       render json: {
         success: false,
         error: 'チャートの更新中にエラーが発生しました',
@@ -175,7 +171,6 @@ class Api::V1::ChartsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Chart destroy error: #{e.message}"
       render json: {
         success: false,
         error: 'チャートの削除中にエラーが発生しました',
@@ -209,7 +204,6 @@ class Api::V1::ChartsController < ApplicationController
         message: 'チャートデータを取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Chart data error: #{e.message}"
       render json: {
         success: false,
         error: 'チャートデータの取得に失敗しました',
@@ -234,7 +228,6 @@ class Api::V1::ChartsController < ApplicationController
         message: @chart.is_favorite ? 'お気に入りに追加しました' : 'お気に入りから削除しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Chart favorite error: #{e.message}"
       render json: {
         success: false,
         error: 'お気に入り設定の変更に失敗しました',
@@ -277,7 +270,6 @@ class Api::V1::ChartsController < ApplicationController
         error: '指定されたチャートが見つかりません'
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "Chart reorder error: #{e.message}"
       render json: {
         success: false,
         error: 'チャート並び順の変更に失敗しました',

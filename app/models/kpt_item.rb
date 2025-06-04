@@ -11,6 +11,8 @@
 # @attr [String] priority 優先度 (low, medium, high)
 # @attr [String] status ステータス (open, in_progress, completed, cancelled)
 # @attr [Date] due_date 期限
+# @attr [Date] start_date 開始日
+# @attr [Date] end_date 終了日
 # @attr [String] assigned_to 担当者
 # @attr [Integer] emotion_score 感情スコア (1-5)
 # @attr [Integer] impact_score インパクトスコア (1-5)
@@ -18,6 +20,9 @@
 # @attr [String] notes 備考
 # @attr [DateTime] completed_at 完了日時
 class KptItem < ApplicationRecord
+  # Single Table Inheritanceを無効にする（typeカラムを通常のデータ用途で使用するため）
+  self.inheritance_column = nil
+
   # リレーション
   belongs_to :kpt_session
 

@@ -51,12 +51,7 @@ class Api::V1::DashboardController < ApplicationController
         message: 'ダッシュボード情報を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard index error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'ダッシュボード情報の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'ダッシュボード情報の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -73,12 +68,7 @@ class Api::V1::DashboardController < ApplicationController
         message: 'ダッシュボードサマリーを取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard summary error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'サマリーデータの取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'サマリーデータの取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -110,12 +100,7 @@ class Api::V1::DashboardController < ApplicationController
         message: "#{period}の統計データを取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard stats error: #{e.message}"
-      render json: {
-        success: false,
-        error: '統計データの取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '統計データの取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -144,12 +129,7 @@ class Api::V1::DashboardController < ApplicationController
         message: '最近のアクティビティを取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard activity error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アクティビティデータの取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'アクティビティデータの取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -172,12 +152,7 @@ class Api::V1::DashboardController < ApplicationController
         message: 'KPT概要統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard overview error: #{e.message}"
-      render json: {
-        success: false,
-        error: '概要統計の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '概要統計の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -205,12 +180,7 @@ class Api::V1::DashboardController < ApplicationController
         message: "#{days}日間の傾向分析を取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Dashboard trends error: #{e.message}"
-      render json: {
-        success: false,
-        error: '傾向分析の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '傾向分析の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -509,5 +479,12 @@ class Api::V1::DashboardController < ApplicationController
     else
       'stable'
     end
+  end
+
+  def render_error(error:, status:)
+    render json: {
+      success: false,
+      error: error
+    }, status: status
   end
 end 

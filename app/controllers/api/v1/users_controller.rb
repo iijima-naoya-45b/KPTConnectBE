@@ -18,6 +18,8 @@ class Api::V1::UsersController < ApplicationController
   # @route GET /api/v1/me
   # @response [JSON] ユーザー情報
   def me
+    Rails.logger.info "me action called, current_user: #{current_user&.id}, cookies[:jwt]: #{cookies.encrypted[:jwt].present?}"
+    
     if current_user
       render json: {
         id: current_user.id.to_s,
@@ -26,6 +28,7 @@ class Api::V1::UsersController < ApplicationController
         provider: current_user.provider
       }, status: :ok
     else
+      Rails.logger.info "No current_user found, returning 401"
       render json: { error: "Unauthorized" }, status: :unauthorized
     end
   end
@@ -52,7 +55,6 @@ class Api::V1::UsersController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "User update error: #{e.message}"
       render json: {
         success: false,
         error: 'ユーザー情報の更新中にエラーが発生しました',
@@ -78,7 +80,6 @@ class Api::V1::UsersController < ApplicationController
         message: 'ユーザー設定を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "User settings error: #{e.message}"
       render json: {
         success: false,
         error: 'ユーザー設定の取得に失敗しました',
@@ -123,7 +124,6 @@ class Api::V1::UsersController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "User update_settings error: #{e.message}"
       render json: {
         success: false,
         error: 'ユーザー設定の更新中にエラーが発生しました',
@@ -155,7 +155,6 @@ class Api::V1::UsersController < ApplicationController
         message: 'ユーザー統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "User stats error: #{e.message}"
       render json: {
         success: false,
         error: 'ユーザー統計の取得に失敗しました',
@@ -180,21 +179,72 @@ class Api::V1::UsersController < ApplicationController
         return
       end
 
-      # アカウント削除処理（論理削除）
-      if current_user.update(is_active: false, email: "deleted_#{current_user.id}@deleted.com")
-        render json: {
-          success: true,
-          message: 'アカウントを削除しました'
-        }, status: :ok
-      else
-        render json: {
-          success: false,
-          error: 'アカウントの削除に失敗しました',
-          details: current_user.errors.full_messages
-        }, status: :unprocessable_entity
+      # タイムスタンプベースの一意なメールアドレスを生成
+      timestamp = Time.current.to_i
+      unique_email = "deleted_#{current_user.id}_#{timestamp}@deleted.com"
+      
+      # メールアドレスの重複チェックと再生成
+      counter = 0
+      while User.exists?(email: unique_email) && counter < 100
+        counter += 1
+        unique_email = "deleted_#{current_user.id}_#{timestamp}_#{counter}@deleted.com"
       end
+
+      Rails.logger.info "アカウント削除開始 - User ID: #{current_user.id}, Email: #{current_user.email} -> #{unique_email}"
+
+      # アカウント削除処理（論理削除）
+      ActiveRecord::Base.transaction do
+        # KPTセッションをアーカイブ状態に変更
+        sessions_updated = current_user.kpt_sessions.update_all(status: 'archived', updated_at: Time.current)
+        Rails.logger.info "KPTセッション更新完了 - 更新件数: #{sessions_updated}"
+
+        # ユーザーアカウントの論理削除
+        update_params = {
+          is_active: false, 
+          email: unique_email,
+          username: "deleted_#{current_user.id}_#{timestamp}",
+          name: "削除済みユーザー",
+          avatar_url: nil,
+          deleted_at: Time.current,
+          timezone: current_user.timezone,  # 既存の値を保持
+          language: current_user.language   # 既存の値を保持
+        }
+        
+        Rails.logger.info "ユーザー更新パラメータ: #{update_params}"
+        
+        unless current_user.update(update_params)
+          Rails.logger.error "ユーザー更新失敗 - エラー: #{current_user.errors.full_messages}"
+          render json: {
+            success: false,
+            error: 'アカウントの削除に失敗しました',
+            details: current_user.errors.full_messages
+          }, status: :unprocessable_entity
+          return
+        end
+        
+        Rails.logger.info "ユーザー更新完了"
+      end
+
+      # セッションをクリア
+      cookies.delete(:jwt)
+      Rails.logger.info "セッションクリア完了"
+
+      render json: {
+        success: true,
+        message: 'アカウントを削除しました'
+      }, status: :ok
+
+    rescue ActiveRecord::RecordInvalid => e
+      Rails.logger.error "RecordInvalid - #{e.record.errors.full_messages}"
+      render json: {
+        success: false,
+        error: 'アカウントの削除に失敗しました',
+        details: e.record.errors.full_messages
+      }, status: :unprocessable_entity
     rescue StandardError => e
-      Rails.logger.error "User destroy_account error: #{e.message}"
+      Rails.logger.error "アカウント削除エラー - User ID: #{current_user&.id}, Error: #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      
       render json: {
         success: false,
         error: 'アカウント削除中にエラーが発生しました',
@@ -229,7 +279,6 @@ class Api::V1::UsersController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "User upload_avatar error: #{e.message}"
       render json: {
         success: false,
         error: 'アバター画像のアップロードに失敗しました',

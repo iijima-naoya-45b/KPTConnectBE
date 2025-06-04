@@ -65,7 +65,6 @@ class Api::V1::WorkLogsController < ApplicationController
         message: '作業ログ一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Work logs index error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログ一覧の取得に失敗しました',
@@ -87,7 +86,6 @@ class Api::V1::WorkLogsController < ApplicationController
         message: '作業ログ詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Work log show error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログ詳細の取得に失敗しました',
@@ -120,7 +118,6 @@ class Api::V1::WorkLogsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Work log create error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログの作成中にエラーが発生しました',
@@ -151,7 +148,6 @@ class Api::V1::WorkLogsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Work log update error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログの更新中にエラーが発生しました',
@@ -178,7 +174,6 @@ class Api::V1::WorkLogsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Work log destroy error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログの削除中にエラーが発生しました',
@@ -211,7 +206,6 @@ class Api::V1::WorkLogsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Work log complete error: #{e.message}"
       render json: {
         success: false,
         error: '作業ログ完了処理中にエラーが発生しました',
@@ -260,7 +254,6 @@ class Api::V1::WorkLogsController < ApplicationController
         error: 'KPTセッションが見つかりません'
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "Work log link_kpt error: #{e.message}"
       render json: {
         success: false,
         error: 'KPTセッション連携中にエラーが発生しました',
@@ -294,7 +287,6 @@ class Api::V1::WorkLogsController < ApplicationController
         error: 'KPTセッションが見つかりません'
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "Work log unlink_kpt error: #{e.message}"
       render json: {
         success: false,
         error: 'KPTセッション連携解除中にエラーが発生しました',
@@ -345,7 +337,6 @@ class Api::V1::WorkLogsController < ApplicationController
         message: '作業ログ統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Work log stats error: #{e.message}"
       render json: {
         success: false,
         error: '統計データの取得に失敗しました',
@@ -379,7 +370,6 @@ class Api::V1::WorkLogsController < ApplicationController
         message: "#{days}日間の生産性分析を完了しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Work log productivity error: #{e.message}"
       render json: {
         success: false,
         error: '生産性分析に失敗しました',

@@ -118,6 +118,25 @@ Rails.application.routes.draw do
           get :recommendations
         end
       end
+
+      # 個人振り返りカレンダー機能
+      namespace :calendar do
+        get :reflection_calendar, to: "reflections#index"
+        get :monthly_data, to: "reflections#monthly_data"
+        get :growth_timeline, to: "reflections#growth_timeline"
+        get :growth_analytics, to: "reflections#growth_analytics"
+        get :personal_stats, to: "reflections#personal_stats"
+        post :mark_reflection, to: "reflections#mark_reflection"
+        delete :unmark_reflection, to: "reflections#unmark_reflection"
+      end
+
+      # フィードバック管理
+      resources :feedbacks, except: [:new, :edit] do
+        collection do
+          get :dashboard
+          get :export
+        end
+      end
     end
   end
 end

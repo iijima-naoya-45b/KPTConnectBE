@@ -29,7 +29,6 @@ class ApplicationController < ActionController::API
   # Cookieからユーザー情報を設定
   def set_current_user_from_cookie
     jwt = cookies.encrypted[:jwt]
-    Rails.logger.debug "Encrypted cookie JWT: #{jwt.inspect}" if Rails.env.development?
     return unless jwt
 
     begin
@@ -38,10 +37,8 @@ class ApplicationController < ActionController::API
       
       if user_id.present?
         @current_user = User.active.find_by(id: user_id)
-        Rails.logger.debug "Current user set: #{@current_user&.email}" if Rails.env.development?
       end
     rescue JSON::ParserError, StandardError => e
-      Rails.logger.warn "JWT parsing error: #{e.message}"
       @current_user = nil
       # Cookieをクリア
       cookies.delete(:jwt)
@@ -58,12 +55,10 @@ class ApplicationController < ActionController::API
   # @raise [AuthenticationError] 認証されていない場合
   def authenticate_user!
     unless current_user
-      Rails.logger.warn "Authentication required but no user found"
       raise AuthenticationError, 'ログインが必要です'
     end
 
     unless current_user.is_active?
-      Rails.logger.warn "Inactive user attempted access: #{current_user.email}"
       raise AuthenticationError, 'アカウントが無効です'
     end
 
@@ -87,7 +82,6 @@ class ApplicationController < ActionController::API
     authenticate_user!
     
     unless current_user.pro_plan?
-      Rails.logger.warn "Pro plan required but user is not subscribed: #{current_user.email}"
       raise AuthorizationError, 'プロプランの契約が必要です'
     end
   end
@@ -97,7 +91,6 @@ class ApplicationController < ActionController::API
     authenticate_user!
     
     unless current_user.admin?
-      Rails.logger.warn "Admin access attempted by non-admin: #{current_user.email}"
       raise AuthorizationError, '管理者権限が必要です'
     end
   end
@@ -145,7 +138,6 @@ class ApplicationController < ActionController::API
 
   # 認証エラーハンドリング
   def handle_authentication_error(exception)
-    Rails.logger.warn "Authentication error: #{exception.message}"
     render json: {
       success: false,
       error: 'Unauthorized',
@@ -155,7 +147,6 @@ class ApplicationController < ActionController::API
 
   # 認可エラーハンドリング
   def handle_authorization_error(exception)
-    Rails.logger.warn "Authorization error: #{exception.message}"
     render json: {
       success: false,
       error: 'Forbidden',
@@ -165,7 +156,6 @@ class ApplicationController < ActionController::API
 
   # リソース未発見エラーハンドリング
   def handle_not_found(exception)
-    Rails.logger.warn "Resource not found: #{exception.message}"
     render json: {
       success: false,
       error: 'Not Found',
@@ -175,7 +165,6 @@ class ApplicationController < ActionController::API
 
   # パラメーター不足エラーハンドリング
   def handle_parameter_missing(exception)
-    Rails.logger.warn "Parameter missing: #{exception.message}"
     render json: {
       success: false,
       error: 'Bad Request',

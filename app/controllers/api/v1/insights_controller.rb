@@ -52,7 +52,6 @@ class Api::V1::InsightsController < ApplicationController
         message: 'インサイト一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Insights index error: #{e.message}"
       render json: {
         success: false,
         error: 'インサイト一覧の取得に失敗しました',
@@ -74,7 +73,6 @@ class Api::V1::InsightsController < ApplicationController
         message: 'インサイト詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Insight show error: #{e.message}"
       render json: {
         success: false,
         error: 'インサイト詳細の取得に失敗しました',
@@ -123,7 +121,6 @@ class Api::V1::InsightsController < ApplicationController
         message: 'インサイトを生成しました'
       }, status: :created
     rescue StandardError => e
-      Rails.logger.error "Insight generate error: #{e.message}"
       render json: {
         success: false,
         error: 'インサイトの生成に失敗しました',
@@ -156,7 +153,6 @@ class Api::V1::InsightsController < ApplicationController
         message: "#{days}日間のパターン分析を完了しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Patterns analysis error: #{e.message}"
       render json: {
         success: false,
         error: 'パターン分析に失敗しました',
@@ -183,7 +179,6 @@ class Api::V1::InsightsController < ApplicationController
         message: '改善提案を生成しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Recommendations error: #{e.message}"
       render json: {
         success: false,
         error: '改善提案の生成に失敗しました',
