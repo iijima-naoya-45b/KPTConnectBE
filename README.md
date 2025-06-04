@@ -118,3 +118,92 @@ brew services stop postgresql
 ### rails 起動(port3001 で F と競合回避)
 
 rails server -p 3001
+
+## API 概要
+
+### 個人振り返りカレンダー API
+
+個人の振り返りカレンダー機能を提供するAPIエンドポイント群です。
+
+#### エンドポイント
+
+```
+GET    /api/v1/calendar/reflection_calendar   # カレンダー表示用データ取得
+GET    /api/v1/calendar/monthly_data          # 月次統計データ取得
+GET    /api/v1/calendar/growth_timeline       # 成長タイムライン取得
+GET    /api/v1/calendar/growth_analytics      # 成長分析データ取得
+GET    /api/v1/calendar/personal_stats        # 個人統計取得
+POST   /api/v1/calendar/mark_reflection       # 振り返り日マーク
+DELETE /api/v1/calendar/unmark_reflection     # 振り返り日マーク解除
+```
+
+#### 使用例
+
+**カレンダーデータ取得**
+```bash
+curl -X GET "http://localhost:3000/api/v1/calendar/reflection_calendar?year=2025&month=6" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**月次データ取得**
+```bash
+curl -X GET "http://localhost:3000/api/v1/calendar/monthly_data?year=2025&month=6" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**成長タイムライン取得**
+```bash
+curl -X GET "http://localhost:3000/api/v1/calendar/growth_timeline?start_date=2025-01-01&end_date=2025-12-31" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+**振り返り日マーク**
+```bash
+curl -X POST "http://localhost:3000/api/v1/calendar/mark_reflection" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"date": "2025-06-15", "note": "重要な振り返り"}'
+```
+
+#### レスポンス例
+
+**カレンダーデータ**
+```json
+{
+  "success": true,
+  "data": {
+    "year": 2025,
+    "month": 6,
+    "calendar_data": [
+      {
+        "date": "2025-06-01",
+        "day": 1,
+        "weekday": 0,
+        "has_kpt_session": true,
+        "kpt_sessions": [
+          {
+            "id": "1",
+            "title": "週次振り返り",
+            "status": "completed",
+            "items_count": 5,
+            "progress_rate": 100
+          }
+        ],
+        "reflection_score": 85,
+        "productivity_level": "high"
+      }
+    ],
+    "monthly_summary": {
+      "total_reflection_days": 15,
+      "total_sessions": 20,
+      "completed_sessions": 18,
+      "total_items": 75,
+      "average_items_per_session": 3.8,
+      "reflection_streak": 7
+    }
+  },
+  "message": "カレンダーデータを取得しました"
+}
+```
+
+## 機能一覧

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_04_130212) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -46,6 +46,59 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
     t.index ["user_id", "is_favorite"], name: "index_charts_on_user_id_and_is_favorite"
     t.index ["user_id"], name: "index_charts_on_user_id"
     t.check_constraint "chart_type::text = ANY (ARRAY['line'::character varying, 'bar'::character varying, 'pie'::character varying, 'area'::character varying, 'scatter'::character varying, 'heatmap'::character varying, 'treemap'::character varying]::text[])", name: "check_charts_type"
+  end
+
+  create_table "feedback_priorities", force: :cascade do |t|
+    t.string "name", limit: 100, null: false, comment: "フィードバック優先度名"
+    t.string "key", limit: 50, null: false, comment: "フィードバック優先度キー（システム内部用）"
+    t.text "description", comment: "フィードバック優先度説明"
+    t.integer "display_order", default: 0, null: false, comment: "表示順序"
+    t.integer "priority_level", default: 1, null: false, comment: "優先度レベル（数値が大きいほど高優先度）"
+    t.boolean "is_active", default: true, null: false, comment: "アクティブ状態"
+    t.string "color_code", limit: 7, comment: "表示用カラーコード（#FFFFFF形式）"
+    t.string "badge_class", limit: 100, comment: "CSSバッジクラス名"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active", "display_order"], name: "index_feedback_priorities_on_active_and_order"
+    t.index ["key"], name: "index_feedback_priorities_on_key", unique: true
+    t.index ["priority_level"], name: "index_feedback_priorities_on_level"
+  end
+
+  create_table "feedback_types", force: :cascade do |t|
+    t.string "name", limit: 100, null: false, comment: "フィードバック種別名"
+    t.string "key", limit: 50, null: false, comment: "フィードバック種別キー（システム内部用）"
+    t.text "description", comment: "フィードバック種別説明"
+    t.integer "display_order", default: 0, null: false, comment: "表示順序"
+    t.boolean "is_active", default: true, null: false, comment: "アクティブ状態"
+    t.string "color_code", limit: 7, comment: "表示用カラーコード（#FFFFFF形式）"
+    t.string "icon_name", limit: 50, comment: "アイコン名"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active", "display_order"], name: "index_feedback_types_on_active_and_order"
+    t.index ["key"], name: "index_feedback_types_on_key", unique: true
+  end
+
+  create_table "feedbacks", force: :cascade do |t|
+    t.bigint "user_id", null: false, comment: "ユーザーID"
+    t.bigint "feedback_type_id", null: false, comment: "フィードバック種別ID"
+    t.bigint "feedback_priority_id", null: false, comment: "フィードバック優先度ID"
+    t.string "title", limit: 255, null: false, comment: "フィードバックタイトル"
+    t.text "description", null: false, comment: "フィードバック詳細説明"
+    t.string "email", limit: 255, null: false, comment: "フィードバック送信者メールアドレス"
+    t.string "status", limit: 50, default: "unread", null: false, comment: "ステータス（unread/in_progress/resolved）"
+    t.text "admin_notes", comment: "管理者メモ"
+    t.datetime "resolved_at", comment: "解決日時"
+    t.json "metadata", comment: "追加データ（ブラウザ情報、OS情報等）"
+    t.boolean "is_active", default: true, null: false, comment: "アクティブ状態"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["feedback_priority_id"], name: "index_feedbacks_on_feedback_priority_id"
+    t.index ["feedback_priority_id"], name: "index_feedbacks_on_priority"
+    t.index ["feedback_type_id"], name: "index_feedbacks_on_feedback_type_id"
+    t.index ["feedback_type_id"], name: "index_feedbacks_on_type"
+    t.index ["status", "created_at"], name: "index_feedbacks_on_status_and_created"
+    t.index ["user_id", "created_at"], name: "index_feedbacks_on_user_and_created"
+    t.index ["user_id"], name: "index_feedbacks_on_user_id"
   end
 
   create_table "insights", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -89,6 +142,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
     t.datetime "completed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "start_date"
+    t.date "end_date"
     t.index ["completed_at"], name: "index_kpt_items_on_completed_at"
     t.index ["due_date"], name: "index_kpt_items_on_due_date"
     t.index ["emotion_score"], name: "index_kpt_items_on_emotion_score"
@@ -179,6 +234,21 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
     t.check_constraint "status::text = ANY (ARRAY['succeeded'::character varying, 'pending'::character varying, 'failed'::character varying, 'canceled'::character varying, 'requires_action'::character varying]::text[])", name: "check_payments_status"
   end
 
+  create_table "reflection_marks", force: :cascade do |t|
+    t.bigint "user_id", null: false, comment: "ユーザーID"
+    t.date "date", null: false, comment: "マークした日付"
+    t.string "note", limit: 500, comment: "メモ"
+    t.string "mark_type", default: "reflection", null: false, comment: "マークタイプ"
+    t.json "metadata", comment: "追加データ（JSON）"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_reflection_marks_on_created_at"
+    t.index ["date"], name: "index_reflection_marks_on_date"
+    t.index ["mark_type"], name: "index_reflection_marks_on_mark_type"
+    t.index ["user_id", "date"], name: "index_reflection_marks_on_user_and_date", unique: true
+    t.index ["user_id"], name: "index_reflection_marks_on_user_id"
+  end
+
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "stripe_subscription_id", limit: 255, null: false
@@ -243,6 +313,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
     t.boolean "is_active", default: true
     t.datetime "email_verified_at", precision: nil
     t.datetime "last_login_at", precision: nil
+    t.datetime "deleted_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
@@ -300,6 +371,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
 
   add_foreign_key "authentications", "users"
   add_foreign_key "charts", "users"
+  add_foreign_key "feedbacks", "feedback_priorities"
+  add_foreign_key "feedbacks", "feedback_types"
+  add_foreign_key "feedbacks", "users"
   add_foreign_key "insights", "kpt_sessions"
   add_foreign_key "insights", "users"
   add_foreign_key "kpt_items", "kpt_sessions"
@@ -307,6 +381,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_31_120014) do
   add_foreign_key "payment_methods", "users"
   add_foreign_key "payments", "subscriptions"
   add_foreign_key "payments", "users"
+  add_foreign_key "reflection_marks", "users"
   add_foreign_key "subscriptions", "users"
   add_foreign_key "user_settings", "users"
   add_foreign_key "work_log_kpt_links", "kpt_sessions"

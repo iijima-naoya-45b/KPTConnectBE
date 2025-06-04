@@ -29,27 +29,47 @@ class Api::V1::OauthsController < ApplicationController
   end
 
   def redirect_to_login_with_params(user)
-    # トークンではなく JSON 文字列を保存
-    payload = { user_id: user.id }.to_json
+    # user_id, uid, providerをjwtにセット
+    payload = { user_id: user.id, uid: user.uid, provider: user.provider }.to_json
+
+    Rails.logger.info "Setting cookie for user: #{user.id}, uid: #{user.uid}, provider: #{user.provider}, payload: #{payload}"
 
     cookies.encrypted[:jwt] = {
       value: payload,
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax,
+      domain: Rails.env.development? ? 'localhost' : nil,
+      path: '/',
       expires: 1.hour.from_now
     }
+
+    Rails.logger.info "Cookie set successfully, redirecting to: #{ENV["FRONTEND_URL"]}"
 
     redirect_to ENV["FRONTEND_URL"]
   end
 
   def create_or_find_user_from_provider(provider)
-    uid = @user_hash[:uid]
     user_info = @user_hash[:user_info]
+    uid = user_info["id"].to_s # すべてのプロバイダーで共通
+    email = user_info["email"]
+    username = user_info["login"] || user_info["name"]
+    name = user_info["name"] || user_info["login"]
 
-    User.find_or_create_by(provider: provider, uid: uid) do |user|
-      user.email = user_info["email"]
-      user.username = user_info["name"]
+    Rails.logger.info "OAuth Provider: #{provider}"
+    Rails.logger.info "User Hash: #{@user_hash}"
+    Rails.logger.info "Processed - Email: #{email}, Username: #{username}, Name: #{name}, UID: #{uid}"
+
+    user = User.find_or_create_by(provider: provider, uid: uid)
+    if user.new_record?
+      user.email = email
+      user.username = username
+      user.name = name
+      user.language = 'ja'
+      user.timezone = 'Asia/Tokyo'
+      user.is_active = true
+      user.save!
     end
+    user
   end
 end

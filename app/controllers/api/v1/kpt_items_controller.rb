@@ -66,12 +66,7 @@ class Api::V1::KptItemsController < ApplicationController
         message: 'アイテム一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT items index error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテム一覧の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'KPT項目一覧の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -88,12 +83,7 @@ class Api::V1::KptItemsController < ApplicationController
         message: 'アイテム詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT item show error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテム詳細の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'アイテム詳細の取得に失敗しました', status: :internal_server_error)
     end
   end
 
@@ -115,24 +105,23 @@ class Api::V1::KptItemsController < ApplicationController
           message: 'アイテムを作成しました'
         }, status: :created
       else
+        Rails.logger.error "KPT項目バリデーションエラー: #{@kpt_item.errors.full_messages}"
         render json: {
           success: false,
           error: 'アイテムの作成に失敗しました',
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
-    rescue ActiveRecord::RecordNotFound
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: 'セッションが見つかりません'
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT item create error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテムの作成中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      Rails.logger.error "KPT項目作成エラー: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render_error(error: 'アイテムの作成中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -158,12 +147,7 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT item update error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテムの更新中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'アイテムの更新中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -185,12 +169,7 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT item destroy error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテムの削除中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'アイテムの削除中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -215,12 +194,7 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT item complete error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'アイテム完了処理中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'アイテム完了処理中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -256,12 +230,7 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT item update_status error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'ステータス更新中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'ステータス更新中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -298,12 +267,7 @@ class Api::V1::KptItemsController < ApplicationController
         message: 'アイテム統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT item stats error: #{e.message}"
-      render json: {
-        success: false,
-        error: '統計データの取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '統計データの取得に失敗しました', status: :internal_server_error)
     end
   end
 
@@ -331,12 +295,7 @@ class Api::V1::KptItemsController < ApplicationController
         message: "#{days}日間の傾向分析を取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT item trends error: #{e.message}"
-      render json: {
-        success: false,
-        error: '傾向分析の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '傾向分析の取得に失敗しました', status: :internal_server_error)
     end
   end
 
@@ -355,7 +314,7 @@ class Api::V1::KptItemsController < ApplicationController
   # アイテムパラメーターを許可
   def item_params
     params.require(:item).permit(
-      :kpt_session_id, :type, :content, :priority, :status, :due_date, :assigned_to,
+      :kpt_session_id, :type, :content, :priority, :status, :due_date, :start_date, :end_date, :assigned_to,
       :emotion_score, :impact_score, :notes,
       tags: []
     )
@@ -372,6 +331,8 @@ class Api::V1::KptItemsController < ApplicationController
       priority: item.priority,
       status: item.status,
       due_date: item.due_date,
+      start_date: item.start_date,
+      end_date: item.end_date,
       assigned_to: item.assigned_to,
       emotion_score: item.emotion_score,
       impact_score: item.impact_score,
@@ -402,6 +363,8 @@ class Api::V1::KptItemsController < ApplicationController
       status: item.status,
       status_name_ja: item.status_name_ja,
       due_date: item.due_date,
+      start_date: item.start_date,
+      end_date: item.end_date,
       assigned_to: item.assigned_to,
       emotion_score: item.emotion_score,
       impact_score: item.impact_score,
@@ -485,5 +448,12 @@ class Api::V1::KptItemsController < ApplicationController
         low_priority: items.where(priority: 'low').count
       }
     }
+  end
+
+  def render_error(error:, status:)
+    render json: {
+      success: false,
+      error: error
+    }, status: status
   end
 end 

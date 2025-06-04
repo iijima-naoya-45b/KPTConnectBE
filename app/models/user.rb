@@ -32,12 +32,13 @@ class User < ApplicationRecord
   has_many :payments, dependent: :destroy
   has_many :payment_methods, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_many :feedbacks, dependent: :destroy
+  has_many :reflection_marks, dependent: :destroy
 
   # バリデーション
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :provider, presence: true
   validates :uid, presence: true, uniqueness: { scope: :provider }
-  validates :timezone, inclusion: { in: ActiveSupport::TimeZone.all.map(&:name) }
   validates :language, inclusion: { in: %w[ja en] }
 
   # スコープ

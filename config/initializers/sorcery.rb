@@ -80,7 +80,7 @@ Rails.application.config.sorcery.configure do |config|
   # i.e. [:twitter, :facebook, :github, :linkedin, :xing, :google, :liveid, :salesforce, :slack, :line].
   # Default: `[]`
   # 保留->他認証追加の場合、追加予定
-  config.external_providers = [ :google ]
+  config.external_providers = [ :google, :github ]
 
   # You can change it by your local ca_file. i.e. '/etc/pki/tls/certs/ca-bundle.crt'
   # Path to ca_file. By default use a internal ca-bundle.crt.
@@ -141,7 +141,14 @@ Rails.application.config.sorcery.configure do |config|
   # config.github.callback_url = "http://0.0.0.0:3000/oauth/callback?provider=github"
   # config.github.user_info_mapping = {:email => "name"}
   # config.github.scope = ""
-  #
+
+  # GitHub OAuth設定
+  config.github.key = ENV["GITHUB_KEY"]
+  config.github.secret = ENV["GITHUB_SECRET"]
+  config.github.callback_url = ENV["GITHUB_CALLBACK_URL"]
+  config.github.user_info_mapping = { email: "email", username: "login", name: "name", uid: "id" }
+  config.github.scope = "user:email"
+
   # config.paypal.key = ""
   # config.paypal.secret = ""
   # config.paypal.callback_url = "http://0.0.0.0:3000/oauth/callback?provider=paypal"

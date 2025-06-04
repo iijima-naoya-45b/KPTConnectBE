@@ -64,7 +64,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: '通知一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notifications index error: #{e.message}"
       render json: {
         success: false,
         error: '通知一覧の取得に失敗しました',
@@ -89,7 +88,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: '通知詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notification show error: #{e.message}"
       render json: {
         success: false,
         error: '通知詳細の取得に失敗しました',
@@ -117,7 +115,6 @@ class Api::V1::NotificationsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Notification read error: #{e.message}"
       render json: {
         success: false,
         error: '既読処理中にエラーが発生しました',
@@ -146,7 +143,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: "#{updated_count}件の通知を既読にしました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notifications mark_all_read error: #{e.message}"
       render json: {
         success: false,
         error: '一括既読処理に失敗しました',
@@ -173,7 +169,6 @@ class Api::V1::NotificationsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "Notification destroy error: #{e.message}"
       render json: {
         success: false,
         error: '通知削除中にエラーが発生しました',
@@ -201,7 +196,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: '通知設定を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notification settings error: #{e.message}"
       render json: {
         success: false,
         error: '通知設定の取得に失敗しました',
@@ -251,7 +245,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: '通知設定を更新しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notification update_settings error: #{e.message}"
       render json: {
         success: false,
         error: '通知設定の更新に失敗しました',
@@ -291,7 +284,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: 'テスト通知を送信しました'
       }, status: :created
     rescue StandardError => e
-      Rails.logger.error "Notification test error: #{e.message}"
       render json: {
         success: false,
         error: 'テスト通知の送信に失敗しました',
@@ -334,7 +326,6 @@ class Api::V1::NotificationsController < ApplicationController
         message: '通知統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Notification stats error: #{e.message}"
       render json: {
         success: false,
         error: '通知統計の取得に失敗しました',
@@ -534,12 +525,10 @@ class Api::V1::NotificationsController < ApplicationController
   # 実際の通知送信メソッド（仮実装）
   def send_push_notification(notification)
     # 実際の実装では、WebPush、FCM、APNsなどを使用
-    Rails.logger.info "Push notification sent: #{notification.title}"
   end
 
   def send_email_notification(notification)
     # 実際の実装では、ActionMailerを使用
-    Rails.logger.info "Email notification sent: #{notification.title}"
   end
 
   # 統計計算メソッド

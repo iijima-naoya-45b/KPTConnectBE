@@ -30,7 +30,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: 'サブスクリプション情報を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription index error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプション情報の取得に失敗しました',
@@ -91,7 +90,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         details: e.message
       }, status: :payment_required
     rescue StandardError => e
-      Rails.logger.error "Subscription create error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプションの作成に失敗しました',
@@ -113,7 +111,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: 'サブスクリプション詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription show error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプション詳細の取得に失敗しました',
@@ -159,7 +156,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: 'サブスクリプションを更新しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription update error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプションの更新に失敗しました',
@@ -199,7 +195,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: at_period_end ? '期間終了時にキャンセルします' : 'サブスクリプションをキャンセルしました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription destroy error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプションのキャンセルに失敗しました',
@@ -224,7 +219,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: '利用可能なプランを取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription plans error: #{e.message}"
       render json: {
         success: false,
         error: 'プラン情報の取得に失敗しました',
@@ -267,7 +261,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: '支払い履歴を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription payments error: #{e.message}"
       render json: {
         success: false,
         error: '支払い履歴の取得に失敗しました',
@@ -306,7 +299,6 @@ class Api::V1::SubscriptionsController < ApplicationController
         message: 'サブスクリプションを再開しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "Subscription resume error: #{e.message}"
       render json: {
         success: false,
         error: 'サブスクリプションの再開に失敗しました',

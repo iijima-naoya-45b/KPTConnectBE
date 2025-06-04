@@ -22,6 +22,7 @@ class Api::V1::KptSessionsController < ApplicationController
   # @route GET /api/v1/kpt_sessions
   # @param [String] status ステータスフィルター
   # @param [String] tag タグフィルター
+  # @param [String] session_date セッション日付フィルター（YYYY-MM-DD形式）
   # @param [Integer] page ページ番号
   # @param [Integer] per_page 1ページあたりの件数
   # @response [JSON] セッション一覧
@@ -32,11 +33,16 @@ class Api::V1::KptSessionsController < ApplicationController
       # フィルター適用
       sessions = sessions.by_status(params[:status]) if params[:status].present?
       sessions = sessions.with_tag(params[:tag]) if params[:tag].present?
+      sessions = sessions.where(session_date: params[:session_date]) if params[:session_date].present?
       sessions = sessions.templates if params[:templates] == 'true'
       sessions = sessions.not_templates if params[:templates] == 'false'
 
-      # ソート
-      sessions = sessions.recent
+      # ソート（日付指定がある場合は作成日時順、そうでなければ最新順）
+      if params[:session_date].present?
+        sessions = sessions.order(:created_at)
+      else
+        sessions = sessions.recent
+      end
 
       # ページネーション
       page = params[:page]&.to_i || 1
@@ -62,12 +68,7 @@ class Api::V1::KptSessionsController < ApplicationController
         message: 'セッション一覧を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT sessions index error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッション一覧の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッション一覧の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -84,12 +85,7 @@ class Api::V1::KptSessionsController < ApplicationController
         message: 'セッション詳細を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT session show error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッション詳細の取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッション詳細の取得中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -117,12 +113,7 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT session create error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッションの作成中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッションの作成中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -148,12 +139,7 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT session update error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッションの更新中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッションの更新中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -175,12 +161,7 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT session destroy error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッションの削除中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッションの削除中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -205,12 +186,7 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT session complete error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'セッション完了処理中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'セッション完了処理中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -248,12 +224,7 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPT session save_template error: #{e.message}"
-      render json: {
-        success: false,
-        error: 'テンプレート保存中にエラーが発生しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: 'テンプレート保存中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
@@ -299,12 +270,7 @@ class Api::V1::KptSessionsController < ApplicationController
         message: 'セッション統計を取得しました'
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPT session stats error: #{e.message}"
-      render json: {
-        success: false,
-        error: '統計データの取得に失敗しました',
-        details: e.message
-      }, status: :internal_server_error
+      render_error(error: '統計データの取得に失敗しました', status: :internal_server_error)
     end
   end
 
@@ -384,6 +350,8 @@ class Api::V1::KptSessionsController < ApplicationController
       priority: item.priority,
       status: item.status,
       due_date: item.due_date,
+      start_date: item.start_date,
+      end_date: item.end_date,
       assigned_to: item.assigned_to,
       emotion_score: item.emotion_score,
       impact_score: item.impact_score,
@@ -418,5 +386,12 @@ class Api::V1::KptSessionsController < ApplicationController
     end
 
     (total_days.to_f / completed_sessions.count).round(2)
+  end
+
+  def render_error(error:, status:)
+    render json: {
+      success: false,
+      error: error
+    }, status: status
   end
 end 
