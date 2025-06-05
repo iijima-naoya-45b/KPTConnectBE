@@ -1,23 +1,10 @@
 # frozen_string_literal: true
 
 # ダッシュボードAPIコントローラー
-#
-# @description ダッシュボード用のAPI機能を提供
-# ユーザーのKPTアクティビティ統計、最近のアクティビティ、
-# 概要データなどを取得する機能を実装
-#
-# @endpoints
-# - GET /api/v1/dashboard ダッシュボード基本情報
-# - GET /api/v1/dashboard/summary ダッシュボードサマリー
-# - GET /api/v1/dashboard/stats 統計データ
-# - GET /api/v1/dashboard/activity 最近のアクティビティ
-# - GET /api/v1/dashboard/overview KPT概要統計
 class Api::V1::DashboardController < ApplicationController
   before_action :authenticate_user!
 
   # ダッシュボード基本情報を取得
-  # @route GET /api/v1/dashboard
-  # @response [JSON] ダッシュボード基本情報
   def index
     begin
       dashboard_data = {
@@ -56,8 +43,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # ダッシュボードサマリーを取得
-  # @route GET /api/v1/dashboard/summary
-  # @response [JSON] ダッシュボードサマリーデータ
   def summary
     begin
       summary_data = current_user.dashboard_summary
@@ -73,9 +58,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 統計データを取得
-  # @route GET /api/v1/dashboard/stats
-  # @param [String] period 期間 (week, month, quarter, year)
-  # @response [JSON] 統計データ
   def stats
     begin
       period = params[:period] || 'month'
@@ -105,9 +87,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 最近のアクティビティを取得
-  # @route GET /api/v1/dashboard/activity
-  # @param [Integer] limit 取得件数 (デフォルト: 20)
-  # @response [JSON] 最近のアクティビティ
   def activity
     begin
       limit = [params[:limit].to_i, 50].min
@@ -134,8 +113,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # KPT概要統計を取得
-  # @route GET /api/v1/dashboard/overview
-  # @response [JSON] KPT概要統計
   def overview
     begin
       overview_data = current_user.kpt_overview_stats
@@ -157,9 +134,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # KPTアイテムの傾向分析を取得
-  # @route GET /api/v1/dashboard/trends
-  # @param [Integer] days 分析期間（日数、デフォルト: 30）
-  # @response [JSON] 傾向分析データ
   def trends
     begin
       days = params[:days]&.to_i || 30
@@ -187,7 +161,6 @@ class Api::V1::DashboardController < ApplicationController
   private
 
   # 週次統計を取得
-  # @return [Hash] 週次統計データ
   def get_weekly_stats
     start_date = 1.week.ago.beginning_of_week
     end_date = Date.current.end_of_week
@@ -210,7 +183,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 月次統計を取得
-  # @return [Hash] 月次統計データ
   def get_monthly_stats
     current_user.monthly_kpt_stats.merge({
       period_start: Date.current.beginning_of_month,
@@ -220,7 +192,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 四半期統計を取得
-  # @return [Hash] 四半期統計データ
   def get_quarterly_stats
     start_date = Date.current.beginning_of_quarter
     end_date = Date.current.end_of_quarter
@@ -243,7 +214,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 年次統計を取得
-  # @return [Hash] 年次統計データ
   def get_yearly_stats
     start_date = Date.current.beginning_of_year
     end_date = Date.current.end_of_year
@@ -266,8 +236,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # アイテム統計を取得
-  # @param [ActiveRecord::Relation] items アイテムのクエリ
-  # @return [Hash] アイテム統計
   def get_items_stats(items)
     {
       total: items.count,
@@ -282,8 +250,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 期間比較データを取得
-  # @param [String] period 期間タイプ
-  # @return [Hash] 比較データ
   def get_period_comparison(period)
     case period
     when 'month'
@@ -302,9 +268,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 日別内訳を取得
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @return [Array] 日別データ
   def get_daily_breakdown(start_date, end_date)
     (start_date..end_date).map do |date|
       sessions = current_user.kpt_sessions.where(session_date: date)
@@ -321,9 +284,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 月別内訳を取得
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @return [Array] 月別データ
   def get_monthly_breakdown(start_date, end_date)
     current_month = start_date.beginning_of_month
     end_month = end_date.end_of_month
@@ -346,9 +306,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 四半期別内訳を取得
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @return [Array] 四半期別データ
   def get_quarterly_breakdown(start_date, end_date)
     quarters = []
     current_quarter = start_date.beginning_of_quarter
@@ -370,8 +327,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 完了率を計算
-  # @param [ActiveRecord::Relation] sessions セッションのクエリ
-  # @return [Float] 完了率
   def calculate_completion_rate(sessions)
     total = sessions.count
     return 0.0 if total.zero?
@@ -381,9 +336,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 変化率を計算
-  # @param [Integer] current 現在の値
-  # @param [Integer] previous 前の値
-  # @return [Float] 変化率
   def calculate_change(current, previous)
     return 0.0 if previous.zero?
     
@@ -391,8 +343,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # アクティビティデータを整形
-  # @param [Hash] activity アクティビティデータ
-  # @return [Hash] 整形されたアクティビティデータ
   def format_activity(activity)
     object = activity[:object]
     
@@ -423,7 +373,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 追加メトリクスを計算
-  # @return [Hash] 追加メトリクス
   def calculate_additional_metrics
     {
       productivity_score: calculate_productivity_score,
@@ -433,7 +382,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 生産性スコアを計算
-  # @return [Float] 生産性スコア (0-100)
   def calculate_productivity_score
     sessions = current_user.kpt_sessions.where('created_at >= ?', 30.days.ago)
     return 0.0 if sessions.count.zero?
@@ -448,7 +396,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # エンゲージメントレベルを計算
-  # @return [String] エンゲージメントレベル
   def calculate_engagement_level
     recent_sessions = current_user.kpt_sessions.where('created_at >= ?', 14.days.ago).count
     
@@ -463,7 +410,6 @@ class Api::V1::DashboardController < ApplicationController
   end
 
   # 改善トレンドを計算
-  # @return [String] 改善トレンド
   def calculate_improvement_trend
     recent_completion_rate = current_user.kpt_items
                                         .where('completed_at >= ?', 14.days.ago)

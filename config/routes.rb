@@ -137,6 +137,9 @@ Rails.application.routes.draw do
           get :export
         end
       end
+
+      get 'github/issues', to: 'github#issues'
+      get 'github/issues/:number', to: 'github#issue_detail'
     end
   end
 end

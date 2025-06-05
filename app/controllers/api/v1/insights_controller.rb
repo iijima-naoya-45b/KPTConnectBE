@@ -1,26 +1,11 @@
 # frozen_string_literal: true
 
 # インサイトAPIコントローラー
-#
-# @description KPTデータからのインサイト生成機能を提供
-# AI分析によるパターン発見、改善提案、データ洞察の生成
-#
-# @endpoints
-# - GET /api/v1/insights インサイト一覧
-# - GET /api/v1/insights/:id インサイト詳細
-# - POST /api/v1/insights/generate インサイト生成
-# - GET /api/v1/insights/patterns パターン分析
-# - GET /api/v1/insights/recommendations 改善提案
 class Api::V1::InsightsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_insight, only: [:show, :update, :destroy]
 
   # インサイト一覧を取得
-  # @route GET /api/v1/insights
-  # @param [String] type インサイトタイプフィルター
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] インサイト一覧
   def index
     begin
       insights = current_user.insights.order(created_at: :desc)
@@ -61,8 +46,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # インサイト詳細を取得
-  # @route GET /api/v1/insights/:id
-  # @response [JSON] インサイト詳細
   def show
     begin
       insight_data = format_insight_detail(@insight)
@@ -82,10 +65,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # インサイトを生成
-  # @route POST /api/v1/insights/generate
-  # @param [String] analysis_type 分析タイプ
-  # @param [Hash] options 分析オプション
-  # @response [JSON] 生成されたインサイト
   def generate
     begin
       analysis_type = params[:analysis_type] || 'comprehensive'
@@ -130,9 +109,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # パターン分析を取得
-  # @route GET /api/v1/insights/patterns
-  # @param [Integer] days 分析期間（日数）
-  # @response [JSON] パターン分析結果
   def patterns
     begin
       days = params[:days]&.to_i || 30
@@ -162,8 +138,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 改善提案を取得
-  # @route GET /api/v1/insights/recommendations
-  # @response [JSON] 改善提案
   def recommendations
     begin
       recommendations_data = {
@@ -200,8 +174,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # インサイトサマリーを整形
-  # @param [Insight] insight インサイト
-  # @return [Hash] 整形されたサマリーデータ
   def format_insight_summary(insight)
     {
       id: insight.id,
@@ -214,8 +186,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # インサイト詳細を整形
-  # @param [Insight] insight インサイト
-  # @return [Hash] 整形された詳細データ
   def format_insight_detail(insight)
     {
       id: insight.id,
@@ -228,8 +198,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 感情分析インサイトを生成
-  # @param [Hash] options 分析オプション
-  # @return [Hash] 感情分析結果
   def generate_emotion_insights(options)
     emotion_trend = KptItem.emotion_trend(current_user, 30)
     
@@ -247,8 +215,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 生産性分析インサイトを生成
-  # @param [Hash] options 分析オプション
-  # @return [Hash] 生産性分析結果
   def generate_productivity_insights(options)
     completion_rate = calculate_completion_rate
     
@@ -266,8 +232,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # パターン分析インサイトを生成
-  # @param [Hash] options 分析オプション
-  # @return [Hash] パターン分析結果
   def generate_pattern_insights(options)
     {
       title: 'パターン分析',
@@ -282,8 +246,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 包括的インサイトを生成
-  # @param [Hash] options 分析オプション
-  # @return [Hash] 包括的分析結果
   def generate_comprehensive_insights(options)
     {
       title: '総合分析',
@@ -306,16 +268,12 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 繰り返しテーマを分析
-  # @param [Integer] days 分析期間
-  # @return [Array] 繰り返しテーマ
   def analyze_recurring_themes(days)
     popular_tags = KptItem.popular_tags(current_user, nil, 10)
     popular_tags.select { |tag_data| tag_data[:count] >= 3 }
   end
 
   # 成功パターンを分析
-  # @param [Integer] days 分析期間
-  # @return [Array] 成功パターン
   def analyze_success_patterns(days)
     completed_items = current_user.kpt_items.completed
                                   .where('completed_at >= ?', days.days.ago)
@@ -331,8 +289,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 問題パターンを分析
-  # @param [Integer] days 分析期間
-  # @return [Array] 問題パターン
   def analyze_problem_patterns(days)
     overdue_items = current_user.kpt_items.overdue
     
@@ -344,8 +300,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # 時間パターンを分析
-  # @param [Integer] days 分析期間
-  # @return [Hash] 時間パターン
   def analyze_time_patterns(days)
     sessions = current_user.kpt_sessions.where('created_at >= ?', days.days.ago)
     
@@ -356,8 +310,6 @@ class Api::V1::InsightsController < ApplicationController
   end
 
   # タグ相関を分析
-  # @param [Integer] days 分析期間
-  # @return [Array] タグ相関
   def analyze_tag_correlations(days)
     # 簡単な相関分析（実際のAI分析ではより高度な手法を使用）
     items = current_user.kpt_items.where('created_at >= ?', days.days.ago)

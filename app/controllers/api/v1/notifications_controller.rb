@@ -1,31 +1,11 @@
 # frozen_string_literal: true
 
 # 通知APIコントローラー
-#
-# @description 通知管理機能を提供
-# システム通知、アクティビティ通知、リマインダー、プッシュ通知
-#
-# @endpoints
-# - GET /api/v1/notifications 通知一覧
-# - GET /api/v1/notifications/:id 通知詳細
-# - PUT /api/v1/notifications/:id/read 既読マーク
-# - PUT /api/v1/notifications/mark_all_read 全て既読
-# - DELETE /api/v1/notifications/:id 通知削除
-# - GET /api/v1/notifications/settings 通知設定
-# - PUT /api/v1/notifications/settings 通知設定更新
-# - POST /api/v1/notifications/test テスト通知送信
 class Api::V1::NotificationsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_notification, only: [:show, :update, :destroy, :read]
 
   # 通知一覧を取得
-  # @route GET /api/v1/notifications
-  # @param [String] type 通知タイプフィルター
-  # @param [Boolean] is_read 既読状態フィルター
-  # @param [String] priority 優先度フィルター
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] 通知一覧
   def index
     begin
       notifications = current_user.notifications.order(created_at: :desc)
@@ -73,8 +53,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知詳細を取得
-  # @route GET /api/v1/notifications/:id
-  # @response [JSON] 通知詳細
   def show
     begin
       # 通知を自動的に既読にする
@@ -97,8 +75,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知を既読にする
-  # @route PUT /api/v1/notifications/:id/read
-  # @response [JSON] 既読結果
   def read
     begin
       if @notification.update(is_read: true, read_at: Time.current)
@@ -124,8 +100,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 全ての通知を既読にする
-  # @route PUT /api/v1/notifications/mark_all_read
-  # @response [JSON] 一括既読結果
   def mark_all_read
     begin
       updated_count = current_user.notifications.unread.update_all(
@@ -152,8 +126,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知を削除
-  # @route DELETE /api/v1/notifications/:id
-  # @response [JSON] 削除結果
   def destroy
     begin
       if @notification.destroy
@@ -178,8 +150,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知設定を取得
-  # @route GET /api/v1/notifications/settings
-  # @response [JSON] 通知設定
   def settings
     begin
       settings_data = {
@@ -205,9 +175,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知設定を更新
-  # @route PUT /api/v1/notifications/settings
-  # @param [Hash] settings 通知設定
-  # @response [JSON] 更新された設定
   def update_settings
     begin
       updated_settings = {}
@@ -254,9 +221,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # テスト通知を送信
-  # @route POST /api/v1/notifications/test
-  # @param [String] type 通知タイプ
-  # @response [JSON] 送信結果
   def test
     begin
       notification_type = params[:type] || 'test'
@@ -293,9 +257,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知統計を取得
-  # @route GET /api/v1/notifications/stats
-  # @param [Integer] days 分析期間（日数）
-  # @response [JSON] 通知統計
   def stats
     begin
       days = params[:days]&.to_i || 30
@@ -347,8 +308,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知サマリーを整形
-  # @param [Notification] notification 通知
-  # @return [Hash] 整形されたサマリーデータ
   def format_notification_summary(notification)
     {
       id: notification.id,
@@ -366,8 +325,6 @@ class Api::V1::NotificationsController < ApplicationController
   end
 
   # 通知詳細を整形
-  # @param [Notification] notification 通知
-  # @return [Hash] 整形された詳細データ
   def format_notification_detail(notification)
     {
       id: notification.id,

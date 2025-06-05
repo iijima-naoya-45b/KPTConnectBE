@@ -1,33 +1,11 @@
 # frozen_string_literal: true
 
 # KPTアイテムAPIコントローラー
-#
-# @description KPTアイテムのCRUD操作を提供
-# アイテムの作成、更新、削除、ステータス管理、
-# アイテム統計などの機能を実装
-#
-# @endpoints
-# - GET /api/v1/kpt_items アイテム一覧
-# - GET /api/v1/kpt_items/:id アイテム詳細
-# - POST /api/v1/kpt_items アイテム作成
-# - PUT /api/v1/kpt_items/:id アイテム更新
-# - DELETE /api/v1/kpt_items/:id アイテム削除
-# - POST /api/v1/kpt_items/:id/complete アイテム完了
-# - PUT /api/v1/kpt_items/:id/update_status ステータス更新
 class Api::V1::KptItemsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_kpt_item, only: [:show, :update, :destroy, :complete, :update_status]
+  before_action :set_kpt_item, only: [:show, :update, :destroy, :complete, :reopen, :move, :copy, :link_work_log, :unlink_work_log]
 
-  # アイテム一覧を取得
-  # @route GET /api/v1/kpt_items
-  # @param [String] type アイテムタイプフィルター (keep, problem, try)
-  # @param [String] status ステータスフィルター
-  # @param [String] priority 優先度フィルター
-  # @param [String] tag タグフィルター
-  # @param [UUID] kpt_session_id セッションIDフィルター
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] アイテム一覧
+  # KPTアイテム一覧を取得
   def index
     begin
       items = current_user.kpt_items.includes(:kpt_session)
@@ -71,8 +49,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテム詳細を取得
-  # @route GET /api/v1/kpt_items/:id
-  # @response [JSON] アイテム詳細
   def show
     begin
       item_data = format_kpt_item_detail(@kpt_item)
@@ -88,9 +64,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテムを作成
-  # @route POST /api/v1/kpt_items
-  # @param [Hash] item アイテムデータ
-  # @response [JSON] 作成されたアイテム
   def create
     begin
       kpt_session = current_user.kpt_sessions.find(params[:item][:kpt_session_id])
@@ -126,9 +99,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテムを更新
-  # @route PUT /api/v1/kpt_items/:id
-  # @param [Hash] item アイテムデータ
-  # @response [JSON] 更新されたアイテム
   def update
     begin
       if @kpt_item.update(item_params)
@@ -152,8 +122,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテムを削除
-  # @route DELETE /api/v1/kpt_items/:id
-  # @response [JSON] 削除結果
   def destroy
     begin
       if @kpt_item.destroy
@@ -174,8 +142,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテムを完了
-  # @route POST /api/v1/kpt_items/:id/complete
-  # @response [JSON] 完了結果
   def complete
     begin
       if @kpt_item.update(status: 'completed')
@@ -198,48 +164,177 @@ class Api::V1::KptItemsController < ApplicationController
     end
   end
 
-  # アイテムステータスを更新
-  # @route PUT /api/v1/kpt_items/:id/update_status
-  # @param [String] status 新しいステータス
-  # @response [JSON] 更新結果
-  def update_status
+  # アイテムを再オープン
+  def reopen
     begin
-      new_status = params[:status]
-      
-      if new_status.blank?
-        render json: {
-          success: false,
-          error: 'ステータスを指定してください'
-        }, status: :unprocessable_entity
-        return
-      end
-
-      if @kpt_item.update(status: new_status)
+      if @kpt_item.update(status: 'reopened')
         item_data = format_kpt_item_detail(@kpt_item)
 
         render json: {
           success: true,
           data: item_data,
-          message: 'ステータスを更新しました'
+          message: 'アイテムを再オープンしました'
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'ステータスの更新に失敗しました',
+          error: 'アイテムの再オープンに失敗しました',
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'ステータス更新中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: 'アイテム再オープン処理中にエラーが発生しました', status: :internal_server_error)
+    end
+  end
+
+  # アイテムを移動
+  def move
+    begin
+      new_kpt_session = current_user.kpt_sessions.find(params[:new_kpt_session_id])
+      if @kpt_item.update(kpt_session_id: new_kpt_session.id)
+        item_data = format_kpt_item_detail(@kpt_item)
+
+        render json: {
+          success: true,
+          data: item_data,
+          message: 'アイテムを移動しました'
+        }, status: :ok
+      else
+        render json: {
+          success: false,
+          error: 'アイテムの移動に失敗しました',
+          details: @kpt_item.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "セッション未発見エラー: #{e.message}"
+      render json: {
+        success: false,
+        error: 'セッションが見つかりません'
+      }, status: :not_found
+    rescue StandardError => e
+      Rails.logger.error "KPT項目移動エラー: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render_error(error: 'アイテムの移動中にエラーが発生しました', status: :internal_server_error)
+    end
+  end
+
+  # アイテムをコピー
+  def copy
+    begin
+      new_kpt_session = current_user.kpt_sessions.find(params[:new_kpt_session_id])
+      @kpt_item = @kpt_item.dup
+      @kpt_item.kpt_session_id = new_kpt_session.id
+
+      if @kpt_item.save
+        item_data = format_kpt_item_detail(@kpt_item)
+
+        render json: {
+          success: true,
+          data: item_data,
+          message: 'アイテムをコピーしました'
+        }, status: :created
+      else
+        Rails.logger.error "KPT項目コピーエラー: #{@kpt_item.errors.full_messages}"
+        render json: {
+          success: false,
+          error: 'アイテムのコピーに失敗しました',
+          details: @kpt_item.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "セッション未発見エラー: #{e.message}"
+      render json: {
+        success: false,
+        error: 'セッションが見つかりません'
+      }, status: :not_found
+    rescue StandardError => e
+      Rails.logger.error "KPT項目コピーエラー: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render_error(error: 'アイテムのコピー中にエラーが発生しました', status: :internal_server_error)
+    end
+  end
+
+  # アイテムに作業ログをリンク
+  def link_work_log
+    begin
+      work_log = current_user.work_logs.find(params[:work_log_id])
+      if @kpt_item.work_logs.include?(work_log)
+        render json: {
+          success: false,
+          error: 'このアイテムには既にこの作業ログがリンクされています'
+        }, status: :unprocessable_entity
+        return
+      end
+
+      if @kpt_item.work_logs << work_log
+        item_data = format_kpt_item_detail(@kpt_item)
+
+        render json: {
+          success: true,
+          data: item_data,
+          message: 'アイテムに作業ログをリンクしました'
+        }, status: :ok
+      else
+        render json: {
+          success: false,
+          error: 'アイテムに作業ログのリンクに失敗しました',
+          details: @kpt_item.errors.full_messages
+        }, status: :unprocessable_entity
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "作業ログ未発見エラー: #{e.message}"
+      render json: {
+        success: false,
+        error: '作業ログが見つかりません'
+      }, status: :not_found
+    rescue StandardError => e
+      Rails.logger.error "KPT項目作業ログリンクエラー: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render_error(error: 'アイテムに作業ログのリンク中にエラーが発生しました', status: :internal_server_error)
+    end
+  end
+
+  # アイテムから作業ログをアンリンク
+  def unlink_work_log
+    begin
+      work_log = current_user.work_logs.find(params[:work_log_id])
+      if @kpt_item.work_logs.include?(work_log)
+        if @kpt_item.work_logs.delete(work_log)
+          item_data = format_kpt_item_detail(@kpt_item)
+
+          render json: {
+            success: true,
+            data: item_data,
+            message: 'アイテムから作業ログをアンリンクしました'
+          }, status: :ok
+        else
+          render json: {
+            success: false,
+            error: 'アイテムから作業ログのアンリンクに失敗しました',
+            details: @kpt_item.errors.full_messages
+          }, status: :unprocessable_entity
+        end
+      else
+        render json: {
+          success: false,
+          error: 'このアイテムにはこの作業ログがリンクされていません'
+        }, status: :unprocessable_entity
+      end
+    rescue ActiveRecord::RecordNotFound => e
+      Rails.logger.error "作業ログ未発見エラー: #{e.message}"
+      render json: {
+        success: false,
+        error: '作業ログが見つかりません'
+      }, status: :not_found
+    rescue StandardError => e
+      Rails.logger.error "KPT項目作業ログアンリンクエラー: #{e.class.name} - #{e.message}"
+      Rails.logger.error e.backtrace.join("\n")
+      render_error(error: 'アイテムから作業ログのアンリンク中にエラーが発生しました', status: :internal_server_error)
     end
   end
 
   # アイテム統計を取得
-  # @route GET /api/v1/kpt_items/stats
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @param [String] type アイテムタイプフィルター
-  # @response [JSON] アイテム統計
   def stats
     begin
       start_date = params[:start_date]&.to_date || 30.days.ago.to_date
@@ -272,9 +367,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテム傾向分析を取得
-  # @route GET /api/v1/kpt_items/trends
-  # @param [Integer] days 分析期間（日数）
-  # @response [JSON] 傾向分析データ
   def trends
     begin
       days = params[:days]&.to_i || 30
@@ -321,8 +413,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテムサマリーを整形
-  # @param [KptItem] item アイテム
-  # @return [Hash] 整形されたサマリーデータ
   def format_kpt_item_summary(item)
     {
       id: item.id,
@@ -350,8 +440,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # アイテム詳細を整形
-  # @param [KptItem] item アイテム
-  # @return [Hash] 整形された詳細データ
   def format_kpt_item_detail(item)
     {
       id: item.id,
@@ -388,8 +476,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # 類似アイテムを整形
-  # @param [KptItem] item アイテム
-  # @return [Hash] 整形された類似アイテムデータ
   def format_similar_item(item)
     {
       id: item.id,
@@ -401,8 +487,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # 完了傾向を計算
-  # @param [Integer] days 分析期間
-  # @return [Hash] 完了傾向データ
   def calculate_completion_trend(days)
     start_date = days.days.ago.to_date
     items = current_user.kpt_items.joins(:kpt_session)
@@ -431,8 +515,6 @@ class Api::V1::KptItemsController < ApplicationController
   end
 
   # 優先度分布を計算
-  # @param [Integer] days 分析期間
-  # @return [Hash] 優先度分布データ
   def calculate_priority_distribution(days)
     start_date = days.days.ago.to_date
     items = current_user.kpt_items.joins(:kpt_session)

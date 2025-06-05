@@ -1,30 +1,11 @@
 # frozen_string_literal: true
 
 # チャートAPIコントローラー
-#
-# @description ダッシュボード用チャート管理機能を提供
-# カスタムチャートの作成、設定、データ生成
-#
-# @endpoints
-# - GET /api/v1/charts チャート一覧
-# - GET /api/v1/charts/:id チャート詳細
-# - POST /api/v1/charts チャート作成
-# - PUT /api/v1/charts/:id チャート更新
-# - DELETE /api/v1/charts/:id チャート削除
-# - GET /api/v1/charts/:id/data チャートデータ取得
-# - POST /api/v1/charts/:id/favorite お気に入り設定
 class Api::V1::ChartsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_chart, only: [:show, :update, :destroy, :data, :favorite, :reorder]
 
   # チャート一覧を取得
-  # @route GET /api/v1/charts
-  # @param [String] chart_type チャートタイプフィルター
-  # @param [Boolean] is_favorite お気に入りフィルター
-  # @param [Boolean] is_public 公開フィルター
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] チャート一覧
   def index
     begin
       charts = current_user.charts.order(:display_order, :created_at)
@@ -68,8 +49,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャート詳細を取得
-  # @route GET /api/v1/charts/:id
-  # @response [JSON] チャート詳細
   def show
     begin
       chart_data = format_chart_detail(@chart)
@@ -89,9 +68,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートを作成
-  # @route POST /api/v1/charts
-  # @param [Hash] chart チャートデータ
-  # @response [JSON] 作成されたチャート
   def create
     begin
       @chart = current_user.charts.build(chart_params)
@@ -124,9 +100,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートを更新
-  # @route PUT /api/v1/charts/:id
-  # @param [Hash] chart チャートデータ
-  # @response [JSON] 更新されたチャート
   def update
     begin
       if @chart.update(chart_params)
@@ -154,8 +127,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートを削除
-  # @route DELETE /api/v1/charts/:id
-  # @response [JSON] 削除結果
   def destroy
     begin
       if @chart.destroy
@@ -180,10 +151,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートデータを取得
-  # @route GET /api/v1/charts/:id/data
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @response [JSON] チャートデータ
   def data
     begin
       start_date = params[:start_date]&.to_date || 30.days.ago.to_date
@@ -213,8 +180,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # お気に入り設定を切り替え
-  # @route POST /api/v1/charts/:id/favorite
-  # @response [JSON] 設定結果
   def favorite
     begin
       @chart.update!(is_favorite: !@chart.is_favorite)
@@ -237,9 +202,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャート並び順を変更
-  # @route PUT /api/v1/charts/reorder
-  # @param [Array] chart_ids チャートIDの配列（新しい順序）
-  # @response [JSON] 並び替え結果
   def reorder
     begin
       chart_ids = params[:chart_ids]
@@ -300,8 +262,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートサマリーを整形
-  # @param [Chart] chart チャート
-  # @return [Hash] 整形されたサマリーデータ
   def format_chart_summary(chart)
     {
       id: chart.id,
@@ -317,8 +277,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャート詳細を整形
-  # @param [Chart] chart チャート
-  # @return [Hash] 整形された詳細データ
   def format_chart_detail(chart)
     {
       id: chart.id,
@@ -336,7 +294,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # 利用可能なチャートタイプを取得
-  # @return [Array] チャートタイプのリスト
   def get_available_chart_types
     [
       { type: 'line', name: '折れ線グラフ', description: '時系列データの表示に適している' },
@@ -350,10 +307,6 @@ class Api::V1::ChartsController < ApplicationController
   end
 
   # チャートデータを生成
-  # @param [Chart] chart チャート
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @return [Hash] チャートデータ
   def generate_chart_data(chart, start_date, end_date)
     case chart.chart_type
     when 'line'

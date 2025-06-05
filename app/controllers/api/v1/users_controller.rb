@@ -1,16 +1,6 @@
 # frozen_string_literal: true
 
 # ユーザーAPIコントローラー
-#
-# @description ユーザー管理機能を提供
-# プロフィール情報、ユーザー設定、アカウント管理
-#
-# @endpoints
-# - GET /api/v1/me ユーザー情報取得
-# - PUT /api/v1/me ユーザー情報更新
-# - GET /api/v1/users/settings ユーザー設定取得
-# - PUT /api/v1/users/settings ユーザー設定更新
-# - DELETE /api/v1/users/account アカウント削除
 class Api::V1::UsersController < ApplicationController
   before_action :authenticate_user!
 
