@@ -18,14 +18,7 @@ class Api::V1::KptSessionsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_kpt_session, only: [:show, :update, :destroy, :complete, :save_template]
 
-  # セッション一覧を取得
-  # @route GET /api/v1/kpt_sessions
-  # @param [String] status ステータスフィルター
-  # @param [String] tag タグフィルター
-  # @param [String] session_date セッション日付フィルター（YYYY-MM-DD形式）
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] セッション一覧
+  # KPTセッション一覧を取得
   def index
     begin
       sessions = current_user.kpt_sessions.includes(:kpt_items)
@@ -73,8 +66,6 @@ class Api::V1::KptSessionsController < ApplicationController
   end
 
   # セッション詳細を取得
-  # @route GET /api/v1/kpt_sessions/:id
-  # @response [JSON] セッション詳細
   def show
     begin
       session_data = format_session_detail(@kpt_session)
@@ -90,9 +81,6 @@ class Api::V1::KptSessionsController < ApplicationController
   end
 
   # セッションを作成
-  # @route POST /api/v1/kpt_sessions
-  # @param [Hash] session セッションデータ
-  # @response [JSON] 作成されたセッション
   def create
     begin
       @kpt_session = current_user.kpt_sessions.build(session_params)
@@ -115,12 +103,10 @@ class Api::V1::KptSessionsController < ApplicationController
     rescue StandardError => e
       render_error(error: 'セッションの作成中にエラーが発生しました', status: :internal_server_error)
     end
-  end
+  end 
 
   # セッションを更新
-  # @route PUT /api/v1/kpt_sessions/:id
-  # @param [Hash] session セッションデータ
-  # @response [JSON] 更新されたセッション
+  # セッションを更新
   def update
     begin
       if @kpt_session.update(session_params)
@@ -141,11 +127,9 @@ class Api::V1::KptSessionsController < ApplicationController
     rescue StandardError => e
       render_error(error: 'セッションの更新中にエラーが発生しました', status: :internal_server_error)
     end
-  end
+  end  # ← これを追加
 
   # セッションを削除
-  # @route DELETE /api/v1/kpt_sessions/:id
-  # @response [JSON] 削除結果
   def destroy
     begin
       if @kpt_session.destroy
@@ -163,11 +147,9 @@ class Api::V1::KptSessionsController < ApplicationController
     rescue StandardError => e
       render_error(error: 'セッションの削除中にエラーが発生しました', status: :internal_server_error)
     end
-  end
+  end  # ← これを追加
 
   # セッションを完了
-  # @route POST /api/v1/kpt_sessions/:id/complete
-  # @response [JSON] 完了結果
   def complete
     begin
       if @kpt_session.update(status: 'completed')
@@ -188,12 +170,9 @@ class Api::V1::KptSessionsController < ApplicationController
     rescue StandardError => e
       render_error(error: 'セッション完了処理中にエラーが発生しました', status: :internal_server_error)
     end
-  end
+  end  # ← これを追加
 
   # セッションをテンプレートとして保存
-  # @route POST /api/v1/kpt_sessions/:id/save_template
-  # @param [String] template_name テンプレート名
-  # @response [JSON] 保存されたテンプレート
   def save_template
     begin
       template_name = params[:template_name]
@@ -229,10 +208,6 @@ class Api::V1::KptSessionsController < ApplicationController
   end
 
   # セッション統計を取得
-  # @route GET /api/v1/kpt_sessions/stats
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @response [JSON] セッション統計
   def stats
     begin
       start_date = params[:start_date]&.to_date || 30.days.ago.to_date

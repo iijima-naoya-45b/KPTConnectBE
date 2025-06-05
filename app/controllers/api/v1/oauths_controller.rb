@@ -60,15 +60,29 @@ class Api::V1::OauthsController < ApplicationController
     Rails.logger.info "User Hash: #{@user_hash}"
     Rails.logger.info "Processed - Email: #{email}, Username: #{username}, Name: #{name}, UID: #{uid}"
 
-    user = User.find_or_create_by(provider: provider, uid: uid)
-    if user.new_record?
-      user.email = email
-      user.username = username
-      user.name = name
-      user.language = 'ja'
-      user.timezone = 'Asia/Tokyo'
-      user.is_active = true
-      user.save!
+    user = User.find_by(provider: provider, uid: uid)
+    if user
+      if !user.is_active?
+        user.is_active = true
+        user.deleted_at = nil if user.respond_to?(:deleted_at)
+        user.email = email
+        user.username = username
+        user.name = name
+        user.save!
+        Rails.logger.info "User reactivated and info updated: #{user.id}"
+      end
+    else
+      user = User.create!(
+        provider: provider,
+        uid: uid,
+        email: email,
+        username: username,
+        name: name,
+        language: 'ja',
+        timezone: nil,
+        is_active: true
+      )
+      Rails.logger.info "New user created: #{user.id}"
     end
     user
   end

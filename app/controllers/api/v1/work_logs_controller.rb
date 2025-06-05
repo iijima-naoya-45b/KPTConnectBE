@@ -1,33 +1,11 @@
 # frozen_string_literal: true
 
 # 作業ログAPIコントローラー
-#
-# @description 作業ログのCRUD操作を提供
-# 作業時間管理、生産性追跡、KPTセッションとの連携
-#
-# @endpoints
-# - GET /api/v1/work_logs 作業ログ一覧
-# - GET /api/v1/work_logs/:id 作業ログ詳細
-# - POST /api/v1/work_logs 作業ログ作成
-# - PUT /api/v1/work_logs/:id 作業ログ更新
-# - DELETE /api/v1/work_logs/:id 作業ログ削除
-# - POST /api/v1/work_logs/:id/complete 作業ログ完了
-# - POST /api/v1/work_logs/:id/link_kpt KPTセッション連携
 class Api::V1::WorkLogsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_work_log, only: [:show, :update, :destroy, :complete, :link_kpt, :unlink_kpt]
 
   # 作業ログ一覧を取得
-  # @route GET /api/v1/work_logs
-  # @param [String] category カテゴリフィルター
-  # @param [String] project_name プロジェクト名フィルター
-  # @param [String] status ステータスフィルター
-  # @param [Date] date_from 開始日フィルター
-  # @param [Date] date_to 終了日フィルター
-  # @param [String] tag タグフィルター
-  # @param [Integer] page ページ番号
-  # @param [Integer] per_page 1ページあたりの件数
-  # @response [JSON] 作業ログ一覧
   def index
     begin
       work_logs = current_user.work_logs.order(started_at: :desc)
@@ -74,8 +52,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログ詳細を取得
-  # @route GET /api/v1/work_logs/:id
-  # @response [JSON] 作業ログ詳細
   def show
     begin
       work_log_data = format_work_log_detail(@work_log)
@@ -95,9 +71,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログを作成
-  # @route POST /api/v1/work_logs
-  # @param [Hash] work_log 作業ログデータ
-  # @response [JSON] 作成された作業ログ
   def create
     begin
       @work_log = current_user.work_logs.build(work_log_params)
@@ -127,9 +100,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログを更新
-  # @route PUT /api/v1/work_logs/:id
-  # @param [Hash] work_log 作業ログデータ
-  # @response [JSON] 更新された作業ログ
   def update
     begin
       if @work_log.update(work_log_params)
@@ -157,8 +127,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログを削除
-  # @route DELETE /api/v1/work_logs/:id
-  # @response [JSON] 削除結果
   def destroy
     begin
       if @work_log.destroy
@@ -183,9 +151,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログを完了
-  # @route POST /api/v1/work_logs/:id/complete
-  # @param [DateTime] ended_at 終了時刻
-  # @response [JSON] 完了結果
   def complete
     begin
       ended_at = params[:ended_at]&.to_datetime || Time.current
@@ -215,11 +180,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # KPTセッションと連携
-  # @route POST /api/v1/work_logs/:id/link_kpt
-  # @param [UUID] kpt_session_id KPTセッションID
-  # @param [Integer] relevance_score 関連度スコア
-  # @param [String] notes 連携メモ
-  # @response [JSON] 連携結果
   def link_kpt
     begin
       kpt_session = current_user.kpt_sessions.find(params[:kpt_session_id])
@@ -263,8 +223,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # KPTセッションとの連携を解除
-  # @route DELETE /api/v1/work_logs/:id/link_kpt/:kpt_session_id
-  # @response [JSON] 連携解除結果
   def unlink_kpt
     begin
       kpt_session = current_user.kpt_sessions.find(params[:kpt_session_id])
@@ -296,10 +254,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 作業ログ統計を取得
-  # @route GET /api/v1/work_logs/stats
-  # @param [Date] start_date 開始日
-  # @param [Date] end_date 終了日
-  # @response [JSON] 作業ログ統計
   def stats
     begin
       start_date = params[:start_date]&.to_date || 1.month.ago.to_date
@@ -346,9 +300,6 @@ class Api::V1::WorkLogsController < ApplicationController
   end
 
   # 生産性分析を取得
-  # @route GET /api/v1/work_logs/productivity
-  # @param [Integer] days 分析期間（日数）
-  # @response [JSON] 生産性分析
   def productivity
     begin
       days = params[:days]&.to_i || 30

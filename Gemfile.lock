@@ -366,6 +366,7 @@ DEPENDENCIES
   brakeman
   debug
   dotenv-rails
+  faraday
   kamal
   pg (~> 1.1)
   puma (>= 5.0)
