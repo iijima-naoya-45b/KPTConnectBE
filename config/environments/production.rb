@@ -78,9 +78,10 @@ Rails.application.configure do
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   config.hosts = [
-    "kpt-connect.biz",
-    "api.kpt-connect.biz",
-    "kptconnect-backend.onrender.com"
+    "kpt-connect.biz",           # ルートドメイン
+    "www.kpt-connect.biz",       # サブドメイン（www）
+    "api.kpt-connect.biz",       # サブドメイン（api）
+    "kptconnect-backend.onrender.com" # Renderの内部ドメイン
   ]
   #
   # Skip DNS rebinding protection for the default health check endpoint.
