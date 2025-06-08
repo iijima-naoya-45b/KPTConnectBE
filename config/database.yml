@@ -80,21 +80,8 @@ test:
 #
 production:
   primary:
-    adapter:  <%= ENV['DB_ADAPTER'] || 'postgresql' %>
-    encoding: utf8
-    host: <%= ENV["DB_HOST"] %>
-    port: <%= ENV['DB_PORT'] %>
-    database: <%= ENV['DB_NAME'] %>
-    username: <%= ENV['DB_USER'] %>
-    password: <%= ENV['DB_PASSWORD'] %>
-    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    url: <%= ENV['DATABASE_URL'] %>
 
   cable:
-    adapter:  <%= ENV['DB_ADAPTER'] || 'postgresql' %>
-    encoding: utf8
-    host: <%= ENV["DB_HOST"] %>
-    port: <%= ENV['DB_PORT'] %>
-    database: <%= ENV['DB_NAME'] %>
-    username: <%= ENV['DB_USER'] %>
-    password: <%= ENV['DB_PASSWORD'] %>
+    url: <%= ENV['DATABASE_URL'] %>
     pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
