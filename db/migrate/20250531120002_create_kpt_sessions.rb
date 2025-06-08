@@ -43,4 +43,40 @@ class CreateKptSessions < ActiveRecord::Migration[7.0]
     add_index :kpt_sessions, :is_template unless index_exists?(:kpt_sessions, :is_template)
     add_index :kpt_sessions, :completed_at unless index_exists?(:kpt_sessions, :completed_at)
   end
+end
+
+class ChangeKptSessionsStatusToEnum < ActiveRecord::Migration[7.0]
+  def up
+    # 既存データをnot_startedに一括変換
+    execute <<-SQL
+      UPDATE kpt_sessions SET status = 'not_started';
+    SQL
+
+    # チェック制約を一旦削除（既存名が分からない場合はIF EXISTSで）
+    execute <<-SQL
+      ALTER TABLE kpt_sessions DROP CONSTRAINT IF EXISTS check_kpt_sessions_status;
+    SQL
+
+    # 新しいチェック制約を追加
+    execute <<-SQL
+      ALTER TABLE kpt_sessions
+      ADD CONSTRAINT check_kpt_sessions_status
+      CHECK (status IN ('not_started', 'in_progress', 'completed', 'pending'));
+    SQL
+  end
+
+  def down
+    # ダウングレード時はdraftに戻す（必要に応じて調整）
+    execute <<-SQL
+      UPDATE kpt_sessions SET status = 'draft';
+    SQL
+    execute <<-SQL
+      ALTER TABLE kpt_sessions DROP CONSTRAINT IF EXISTS check_kpt_sessions_status;
+    SQL
+    execute <<-SQL
+      ALTER TABLE kpt_sessions
+      ADD CONSTRAINT check_kpt_sessions_status
+      CHECK (status IN ('draft', 'in_progress', 'completed', 'archived'));
+    SQL
+  end
 end 

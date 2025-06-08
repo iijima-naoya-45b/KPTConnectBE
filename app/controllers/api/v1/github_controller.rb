@@ -42,6 +42,40 @@ class Api::V1::GithubController < ApplicationController
     }
   end
 
+  # == Webhook受信エンドポイント ==
+  #
+  # GitHubのProject系イベント（project, project_card, project_column）を受信し、
+  # 内容をログ出力＋今後のKPT/Taskマッピング用にパースします。
+  #
+  # @route POST /api/v1/github/webhook
+  # @param [JSON] GitHub Webhookイベントペイロード
+  # @return [200] 成功時はOK
+  def webhook
+    event_type = request.headers['X-GitHub-Event']
+    payload = JSON.parse(request.body.read)
+
+    Rails.logger.info "[GitHubWebhook] event_type=#{event_type} payload=#{payload.inspect}"
+
+    case event_type
+    when 'project'
+      # Project作成・編集・削除イベント
+      # TODO: KPT/Taskへのマッピング処理
+      Rails.logger.info "[GitHubWebhook] Project event: #{payload['action']} #{payload['project'].inspect}"
+    when 'project_card'
+      # Projectカード（Issue/PR/Note）作成・編集・移動・削除イベント
+      # TODO: KPT/Taskへのマッピング処理
+      Rails.logger.info "[GitHubWebhook] ProjectCard event: #{payload['action']} #{payload['project_card'].inspect}"
+    when 'project_column'
+      # Projectカラム（To do, In progress, Done等）作成・編集・移動・削除イベント
+      # TODO: KPT/Taskへのマッピング処理
+      Rails.logger.info "[GitHubWebhook] ProjectColumn event: #{payload['action']} #{payload['project_column'].inspect}"
+    else
+      Rails.logger.info "[GitHubWebhook] Unsupported event_type: #{event_type}"
+    end
+
+    head :ok
+  end
+
   private
 
   # OAuthトークン取得（セッションやDBから）

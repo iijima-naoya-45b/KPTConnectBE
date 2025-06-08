@@ -140,6 +140,7 @@ Rails.application.routes.draw do
 
       get 'github/issues', to: 'github#issues'
       get 'github/issues/:number', to: 'github#issue_detail'
+      post 'github/webhook', to: 'github#webhook'
     end
   end
 end
