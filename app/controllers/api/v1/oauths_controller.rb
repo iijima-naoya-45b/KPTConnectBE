@@ -44,7 +44,7 @@ class Api::V1::OauthsController < ApplicationController
       expires: 1.hour.from_now
     }
 
-    redirect_to ENV["FRONTEND_URL"]
+    redirect_to ENV["FRONTEND_URL"], allow_other_host: true
   end
 
   def create_or_find_user_from_provider(provider)
