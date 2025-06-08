@@ -79,20 +79,11 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  primary: &primary_production
-    <<: *default
-    database: kpt_be_production
-    username: kpt_be
-    password: <%= ENV["KPT_BE_DATABASE_PASSWORD"] %>
-  cache:
-    <<: *primary_production
-    database: kpt_be_production_cache
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *primary_production
-    database: kpt_be_production_queue
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *primary_production
-    database: kpt_be_production_cable
-    migrations_paths: db/cable_migrate
+  adapter: <%= ENV['DB_ADAPTER'] || 'postgresql' %>
+  encoding: utf8
+  host: <%= ENV['DB_HOST'] %>
+  port: <%= ENV['DB_PORT'] %>
+  database: <%= ENV['DB_NAME'] %>
+  username: <%= ENV['DB_USER'] %>
+  password: <%= ENV['DB_PASSWORD'] %>
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
