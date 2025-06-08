@@ -8,12 +8,12 @@ Rails.application.routes.draw do
 
       get "oauth/callback", to: "oauths#callback", as: :callback_api_v1_oauths
       get "oauth/:provider", to: "oauths#oauth", as: :oauth_api_v1_oauths
-      
+
       # セッション管理
-      resource :sessions, only: [:create] do
+      resource :sessions, only: [ :create ] do
         delete :logout, on: :collection
       end
-      
+
       # ユーザー管理
       get "me", to: "users#me"
       put "me", to: "users#update"
@@ -28,7 +28,7 @@ Rails.application.routes.draw do
       end
 
       # ダッシュボード機能
-      resources :dashboard, only: [:index] do
+      resources :dashboard, only: [ :index ] do
         collection do
           get :summary
           get :stats
@@ -50,7 +50,7 @@ Rails.application.routes.draw do
       end
 
       # KPTアイテム管理
-      resources :kpt_items, except: [:new, :edit] do
+      resources :kpt_items, except: [ :new, :edit ] do
         member do
           post :complete
           put :update_status
@@ -97,7 +97,7 @@ Rails.application.routes.draw do
       end
 
       # 通知管理
-      resources :notifications, except: [:new, :edit, :create, :update] do
+      resources :notifications, except: [ :new, :edit, :create, :update ] do
         member do
           put :read
         end
@@ -111,7 +111,7 @@ Rails.application.routes.draw do
       end
 
       # インサイト・分析機能
-      resources :insights, except: [:new, :edit] do
+      resources :insights, except: [ :new, :edit ] do
         collection do
           post :generate
           get :patterns
@@ -131,16 +131,16 @@ Rails.application.routes.draw do
       end
 
       # フィードバック管理
-      resources :feedbacks, except: [:new, :edit] do
+      resources :feedbacks, except: [ :new, :edit ] do
         collection do
           get :dashboard
           get :export
         end
       end
 
-      get 'github/issues', to: 'github#issues'
-      get 'github/issues/:number', to: 'github#issue_detail'
-      post 'github/webhook', to: 'github#webhook'
+      get "github/issues", to: "github#issues"
+      get "github/issues/:number", to: "github#issue_detail"
+      post "github/webhook", to: "github#webhook"
     end
   end
 end

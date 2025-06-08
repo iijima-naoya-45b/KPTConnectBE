@@ -13,14 +13,14 @@ class CreatePaymentMethods < ActiveRecord::Migration[7.0]
 
       # 支払い方法種類
       t.string :type, null: false, limit: 50
-      t.check_constraint "type IN ('card', 'bank_account', 'sepa_debit')", 
+      t.check_constraint "type IN ('card', 'bank_account', 'sepa_debit')",
                          name: 'check_payment_methods_type'
 
       # カード情報（表示用、セキュアな情報はStripeで管理）
       t.string :last4, limit: 4
       t.string :brand, limit: 50
       t.integer :exp_month
-      t.check_constraint 'exp_month >= 1 AND exp_month <= 12', 
+      t.check_constraint 'exp_month >= 1 AND exp_month <= 12',
                          name: 'check_payment_methods_exp_month'
       t.integer :exp_year
 
@@ -38,8 +38,8 @@ class CreatePaymentMethods < ActiveRecord::Migration[7.0]
     add_index :payment_methods, :brand
     add_index :payment_methods, :is_default
     add_index :payment_methods, :is_active
-    add_index :payment_methods, [:user_id, :is_default]
-    add_index :payment_methods, [:user_id, :is_active]
-    add_index :payment_methods, [:user_id, :type]
+    add_index :payment_methods, [ :user_id, :is_default ]
+    add_index :payment_methods, [ :user_id, :is_active ]
+    add_index :payment_methods, [ :user_id, :type ]
   end
-end 
+end

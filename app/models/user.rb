@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # ユーザーモデル
-# 
+#
 # @description ユーザー認証とKPT機能のメインモデル
 # OAuth認証、KPTセッション管理、ユーザー統計機能を提供
-# 
+#
 # @attr [String] email メールアドレス
 # @attr [String] username ユーザー名
 # @attr [String] provider OAuth認証プロバイダー
@@ -51,7 +51,7 @@ class User < ApplicationRecord
   # フルネームまたは表示名を取得
   # @return [String] 表示用名前
   def display_name
-    name.presence || username.presence || email.split('@').first
+    name.presence || username.presence || email.split("@").first
   end
 
   # 管理者かどうかをチェック
@@ -84,7 +84,7 @@ class User < ApplicationRecord
   def monthly_kpt_stats
     start_date = Date.current.beginning_of_month
     end_date = Date.current.end_of_month
-    
+
     sessions = kpt_sessions.by_date_range(start_date, end_date)
     items = kpt_items.joins(:kpt_session)
                      .where(kpt_sessions: { session_date: start_date..end_date })
@@ -126,8 +126,8 @@ class User < ApplicationRecord
     recent_sessions = kpt_sessions.recent.limit(5)
     recent_sessions.each do |session|
       activities << {
-        type: 'session',
-        action: session.completed? ? 'completed' : 'created',
+        type: "session",
+        action: session.completed? ? "completed" : "created",
         object: session,
         timestamp: session.completed? ? session.completed_at : session.created_at
       }
@@ -137,8 +137,8 @@ class User < ApplicationRecord
     recent_items = kpt_items.completed.order(completed_at: :desc).limit(5)
     recent_items.each do |item|
       activities << {
-        type: 'item',
-        action: 'completed',
+        type: "item",
+        action: "completed",
         object: item,
         timestamp: item.completed_at
       }
@@ -157,7 +157,7 @@ class User < ApplicationRecord
       user: {
         display_name: display_name,
         avatar_url: avatar_url,
-        member_since: created_at.strftime('%Y年%m月'),
+        member_since: created_at.strftime("%Y年%m月"),
         timezone: timezone
       },
       activity: {
@@ -169,7 +169,7 @@ class User < ApplicationRecord
       items: {
         total: kpt_items.count,
         active: kpt_items.active.count,
-        completed_this_week: kpt_items.completed.where('completed_at >= ?', 1.week.ago).count,
+        completed_this_week: kpt_items.completed.where("completed_at >= ?", 1.week.ago).count,
         overdue: kpt_items.overdue.count
       },
       insights: {
@@ -201,13 +201,13 @@ class User < ApplicationRecord
   # 現在のサブスクリプションを取得
   # @return [Subscription, nil] アクティブなサブスクリプション
   def current_subscription
-    subscriptions.where(status: ['active', 'trialing', 'past_due']).order(created_at: :desc).first
+    subscriptions.where(status: [ "active", "trialing", "past_due" ]).order(created_at: :desc).first
   end
 
   # プロプランかどうか
   # @return [Boolean] プロプランユーザーかどうか
   def pro_plan?
-    current_subscription&.plan_name == 'Pro'
+    current_subscription&.plan_name == "Pro"
   end
 
   private
@@ -217,7 +217,7 @@ class User < ApplicationRecord
   def calculate_completion_rate
     total = kpt_sessions.count
     return 0.0 if total.zero?
-    
+
     completed = kpt_sessions.completed.count
     completed.to_f / total
   end
@@ -225,7 +225,7 @@ class User < ApplicationRecord
   # 連続日数を計算
   # @return [Integer] 連続KPT実行日数
   def calculate_streak_days
-    dates = kpt_sessions.where('session_date >= ?', 30.days.ago)
+    dates = kpt_sessions.where("session_date >= ?", 30.days.ago)
                        .order(session_date: :desc)
                        .pluck(:session_date)
                        .uniq

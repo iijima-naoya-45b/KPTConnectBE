@@ -17,11 +17,11 @@ class CreateUserSettings < ActiveRecord::Migration[7.0]
     end
 
     # 複合ユニークインデックス（ユーザーごとに同一キーは1つまで）
-    add_index :user_settings, [:user_id, :setting_key], 
+    add_index :user_settings, [ :user_id, :setting_key ],
               unique: true, name: 'index_user_settings_unique'
 
     # 個別インデックス
     add_index :user_settings, :setting_key
     add_index :user_settings, :created_at
   end
-end 
+end

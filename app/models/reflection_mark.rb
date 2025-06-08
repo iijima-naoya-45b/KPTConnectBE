@@ -23,7 +23,7 @@ class ReflectionMark < ApplicationRecord
   scope :recent, -> { order(date: :desc) }
   scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
   scope :by_type, ->(type) { where(mark_type: type) }
-  scope :with_notes, -> { where.not(note: [nil, '']) }
+  scope :with_notes, -> { where.not(note: [ nil, "" ]) }
 
   # コールバック
   before_validation :set_default_mark_type, unless: :mark_type?
@@ -46,10 +46,10 @@ class ReflectionMark < ApplicationRecord
   # @return [Integer] 重要度 (1-5)
   def importance_level
     case mark_type
-    when 'milestone', 'achievement' then 5
-    when 'goal' then 4
-    when 'learning' then 3
-    when 'reflection' then 2
+    when "milestone", "achievement" then 5
+    when "goal" then 4
+    when "learning" then 3
+    when "reflection" then 2
     else 1
     end
   end
@@ -58,12 +58,12 @@ class ReflectionMark < ApplicationRecord
   # @return [String] アイコン名
   def icon
     case mark_type
-    when 'reflection' then '🤔'
-    when 'milestone' then '🎯'
-    when 'goal' then '📌'
-    when 'achievement' then '🏆'
-    when 'learning' then '📚'
-    else '⭐'
+    when "reflection" then "🤔"
+    when "milestone" then "🎯"
+    when "goal" then "📌"
+    when "achievement" then "🏆"
+    when "learning" then "📚"
+    else "⭐"
     end
   end
 
@@ -71,12 +71,12 @@ class ReflectionMark < ApplicationRecord
   # @return [String] 色クラス
   def color_class
     case mark_type
-    when 'reflection' then 'blue'
-    when 'milestone' then 'purple'
-    when 'goal' then 'indigo'
-    when 'achievement' then 'yellow'
-    when 'learning' then 'green'
-    else 'gray'
+    when "reflection" then "blue"
+    when "milestone" then "purple"
+    when "goal" then "indigo"
+    when "achievement" then "yellow"
+    when "learning" then "green"
+    else "gray"
     end
   end
 
@@ -96,7 +96,7 @@ class ReflectionMark < ApplicationRecord
       month_marks = marks.by_date_range(month_start, month_end)
 
       {
-        month: month_start.strftime('%Y-%m'),
+        month: month_start.strftime("%Y-%m"),
         total_marks: month_marks.count,
         by_type: month_marks.group(:mark_type).count,
         with_notes: month_marks.with_notes.count
@@ -139,6 +139,6 @@ class ReflectionMark < ApplicationRecord
 
   # デフォルトマークタイプを設定
   def set_default_mark_type
-    self.mark_type = 'reflection'
+    self.mark_type = "reflection"
   end
-end 
+end

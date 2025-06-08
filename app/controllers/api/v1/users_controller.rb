@@ -9,7 +9,7 @@ class Api::V1::UsersController < ApplicationController
   # @response [JSON] ユーザー情報
   def me
     Rails.logger.info "me action called, current_user: #{current_user&.id}, cookies[:jwt]: #{cookies.encrypted[:jwt].present?}"
-    
+
     if current_user
       render json: {
         id: current_user.id.to_s,
@@ -35,19 +35,19 @@ class Api::V1::UsersController < ApplicationController
         render json: {
           success: true,
           data: user_data,
-          message: 'ユーザー情報を更新しました'
+          message: "ユーザー情報を更新しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'ユーザー情報の更新に失敗しました',
+          error: "ユーザー情報の更新に失敗しました",
           details: current_user.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'ユーザー情報の更新中にエラーが発生しました',
+        error: "ユーザー情報の更新中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -67,12 +67,12 @@ class Api::V1::UsersController < ApplicationController
       render json: {
         success: true,
         data: settings_data,
-        message: 'ユーザー設定を取得しました'
+        message: "ユーザー設定を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'ユーザー設定の取得に失敗しました',
+        error: "ユーザー設定の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -104,19 +104,19 @@ class Api::V1::UsersController < ApplicationController
             updated_settings: updated_settings,
             all_settings: format_user_settings(current_user)
           },
-          message: 'ユーザー設定を更新しました'
+          message: "ユーザー設定を更新しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '一部の設定の更新に失敗しました',
+          error: "一部の設定の更新に失敗しました",
           details: errors
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'ユーザー設定の更新中にエラーが発生しました',
+        error: "ユーザー設定の更新中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -132,7 +132,7 @@ class Api::V1::UsersController < ApplicationController
           member_since: current_user.created_at,
           last_login: current_user.last_login_at,
           total_logins: calculate_total_logins,
-          account_status: current_user.is_active? ? 'active' : 'inactive'
+          account_status: current_user.is_active? ? "active" : "inactive"
         },
         kpt_stats: current_user.kpt_overview_stats,
         subscription_info: format_subscription_info(current_user),
@@ -142,12 +142,12 @@ class Api::V1::UsersController < ApplicationController
       render json: {
         success: true,
         data: stats_data,
-        message: 'ユーザー統計を取得しました'
+        message: "ユーザー統計を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'ユーザー統計の取得に失敗しました',
+        error: "ユーザー統計の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -160,11 +160,11 @@ class Api::V1::UsersController < ApplicationController
   def destroy_account
     begin
       confirmation = params[:confirmation]
-      
+
       if confirmation != current_user.email
         render json: {
           success: false,
-          error: 'アカウント削除の確認が正しくありません'
+          error: "アカウント削除の確認が正しくありません"
         }, status: :unprocessable_entity
         return
       end
@@ -172,7 +172,7 @@ class Api::V1::UsersController < ApplicationController
       # タイムスタンプベースの一意なメールアドレスを生成
       timestamp = Time.current.to_i
       unique_email = "deleted_#{current_user.id}_#{timestamp}@deleted.com"
-      
+
       # メールアドレスの重複チェックと再生成
       counter = 0
       while User.exists?(email: unique_email) && counter < 100
@@ -185,12 +185,12 @@ class Api::V1::UsersController < ApplicationController
       # アカウント削除処理（論理削除）
       ActiveRecord::Base.transaction do
         # KPTセッションをアーカイブ状態に変更
-        sessions_updated = current_user.kpt_sessions.update_all(status: 'archived', updated_at: Time.current)
+        sessions_updated = current_user.kpt_sessions.update_all(status: "archived", updated_at: Time.current)
         Rails.logger.info "KPTセッション更新完了 - 更新件数: #{sessions_updated}"
 
         # ユーザーアカウントの論理削除
         update_params = {
-          is_active: false, 
+          is_active: false,
           email: unique_email,
           username: "deleted_#{current_user.id}_#{timestamp}",
           name: "削除済みユーザー",
@@ -199,19 +199,19 @@ class Api::V1::UsersController < ApplicationController
           timezone: current_user.timezone,  # 既存の値を保持
           language: current_user.language   # 既存の値を保持
         }
-        
+
         Rails.logger.info "ユーザー更新パラメータ: #{update_params}"
-        
+
         unless current_user.update(update_params)
           Rails.logger.error "ユーザー更新失敗 - エラー: #{current_user.errors.full_messages}"
           render json: {
             success: false,
-            error: 'アカウントの削除に失敗しました',
+            error: "アカウントの削除に失敗しました",
             details: current_user.errors.full_messages
           }, status: :unprocessable_entity
           return
         end
-        
+
         Rails.logger.info "ユーザー更新完了"
       end
 
@@ -221,23 +221,23 @@ class Api::V1::UsersController < ApplicationController
 
       render json: {
         success: true,
-        message: 'アカウントを削除しました'
+        message: "アカウントを削除しました"
       }, status: :ok
 
     rescue ActiveRecord::RecordInvalid => e
       Rails.logger.error "RecordInvalid - #{e.record.errors.full_messages}"
       render json: {
         success: false,
-        error: 'アカウントの削除に失敗しました',
+        error: "アカウントの削除に失敗しました",
         details: e.record.errors.full_messages
       }, status: :unprocessable_entity
     rescue StandardError => e
       Rails.logger.error "アカウント削除エラー - User ID: #{current_user&.id}, Error: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      
+
       render json: {
         success: false,
-        error: 'アカウント削除中にエラーが発生しました',
+        error: "アカウント削除中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -251,7 +251,7 @@ class Api::V1::UsersController < ApplicationController
     begin
       # 実際の実装では、S3やCloudinaryなどのクラウドストレージを使用
       avatar_url = upload_to_storage(params[:avatar])
-      
+
       if current_user.update(avatar_url: avatar_url)
         render json: {
           success: true,
@@ -259,19 +259,19 @@ class Api::V1::UsersController < ApplicationController
             avatar_url: avatar_url,
             user: format_user_detail(current_user)
           },
-          message: 'アバター画像をアップロードしました'
+          message: "アバター画像をアップロードしました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アバター画像の保存に失敗しました',
+          error: "アバター画像の保存に失敗しました",
           details: current_user.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'アバター画像のアップロードに失敗しました',
+        error: "アバター画像のアップロードに失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -287,7 +287,7 @@ class Api::V1::UsersController < ApplicationController
   # 設定パラメーターを許可
   def settings_params
     params.require(:settings).permit(
-      :theme, :notifications_enabled, :email_notifications, :weekly_summary, 
+      :theme, :notifications_enabled, :email_notifications, :weekly_summary,
       :dashboard_layout, :default_session_template, :auto_save_interval,
       :date_format, :time_format, :first_day_of_week
     )
@@ -322,16 +322,16 @@ class Api::V1::UsersController < ApplicationController
   # @return [Hash] 設定データ
   def format_user_settings(user)
     {
-      theme: user.get_setting('theme', 'light'),
-      notifications_enabled: user.get_setting('notifications_enabled', 'true') == 'true',
-      email_notifications: user.get_setting('email_notifications', 'true') == 'true',
-      weekly_summary: user.get_setting('weekly_summary', 'true') == 'true',
-      dashboard_layout: user.get_setting('dashboard_layout', 'grid'),
-      default_session_template: user.get_setting('default_session_template', 'basic'),
-      auto_save_interval: user.get_setting('auto_save_interval', '30').to_i,
-      date_format: user.get_setting('date_format', 'YYYY-MM-DD'),
-      time_format: user.get_setting('time_format', '24'),
-      first_day_of_week: user.get_setting('first_day_of_week', '1').to_i
+      theme: user.get_setting("theme", "light"),
+      notifications_enabled: user.get_setting("notifications_enabled", "true") == "true",
+      email_notifications: user.get_setting("email_notifications", "true") == "true",
+      weekly_summary: user.get_setting("weekly_summary", "true") == "true",
+      dashboard_layout: user.get_setting("dashboard_layout", "grid"),
+      default_session_template: user.get_setting("default_session_template", "basic"),
+      auto_save_interval: user.get_setting("auto_save_interval", "30").to_i,
+      date_format: user.get_setting("date_format", "YYYY-MM-DD"),
+      time_format: user.get_setting("time_format", "24"),
+      first_day_of_week: user.get_setting("first_day_of_week", "1").to_i
     }
   end
 
@@ -339,15 +339,15 @@ class Api::V1::UsersController < ApplicationController
   # @return [Hash] デフォルト設定
   def get_default_settings
     {
-      theme: 'light',
+      theme: "light",
       notifications_enabled: true,
       email_notifications: true,
       weekly_summary: true,
-      dashboard_layout: 'grid',
-      default_session_template: 'basic',
+      dashboard_layout: "grid",
+      default_session_template: "basic",
       auto_save_interval: 30,
-      date_format: 'YYYY-MM-DD',
-      time_format: '24',
+      date_format: "YYYY-MM-DD",
+      time_format: "24",
       first_day_of_week: 1
     }
   end
@@ -356,16 +356,16 @@ class Api::V1::UsersController < ApplicationController
   # @return [Hash] 利用可能なオプション
   def get_available_options
     {
-      themes: ['light', 'dark', 'auto'],
-      dashboard_layouts: ['grid', 'list', 'compact'],
-      session_templates: ['basic', 'detailed', 'agile', 'personal'],
-      auto_save_intervals: [15, 30, 60, 120],
-      date_formats: ['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 'DD-MM-YYYY'],
-      time_formats: ['12', '24'],
+      themes: [ "light", "dark", "auto" ],
+      dashboard_layouts: [ "grid", "list", "compact" ],
+      session_templates: [ "basic", "detailed", "agile", "personal" ],
+      auto_save_intervals: [ 15, 30, 60, 120 ],
+      date_formats: [ "YYYY-MM-DD", "DD/MM/YYYY", "MM/DD/YYYY", "DD-MM-YYYY" ],
+      time_formats: [ "12", "24" ],
       first_day_of_week_options: [
-        { value: 0, label: '日曜日' },
-        { value: 1, label: '月曜日' },
-        { value: 6, label: '土曜日' }
+        { value: 0, label: "日曜日" },
+        { value: 1, label: "月曜日" },
+        { value: 6, label: "土曜日" }
       ]
     }
   end
@@ -375,7 +375,7 @@ class Api::V1::UsersController < ApplicationController
   # @return [Hash] サブスクリプション情報
   def format_subscription_info(user)
     subscription = user.current_subscription
-    
+
     if subscription
       {
         plan_name: subscription.plan_name,
@@ -387,9 +387,9 @@ class Api::V1::UsersController < ApplicationController
       }
     else
       {
-        plan_name: 'Free',
-        status: 'active',
-        features: ['基本KPT機能', '月5セッションまで', 'コミュニティサポート']
+        plan_name: "Free",
+        status: "active",
+        features: [ "基本KPT機能", "月5セッションまで", "コミュニティサポート" ]
       }
     end
   end
@@ -406,14 +406,14 @@ class Api::V1::UsersController < ApplicationController
   def calculate_storage_usage
     sessions_count = current_user.kpt_sessions.count
     items_count = current_user.kpt_items.count
-    
+
     # 簡易計算（実際はファイルサイズなどを考慮）
     estimated_size_mb = (sessions_count * 0.1) + (items_count * 0.05)
-    
+
     {
       used_mb: estimated_size_mb.round(2),
       total_mb: current_user.pro_plan? ? 1000 : 100,
-      usage_percentage: [(estimated_size_mb / (current_user.pro_plan? ? 1000 : 100) * 100), 100].min.round(2)
+      usage_percentage: [ (estimated_size_mb / (current_user.pro_plan? ? 1000 : 100) * 100), 100 ].min.round(2)
     }
   end
 
@@ -426,7 +426,7 @@ class Api::V1::UsersController < ApplicationController
     if file.present?
       "https://example.com/avatars/#{current_user.id}/#{SecureRandom.hex}.jpg"
     else
-      raise StandardError, 'ファイルが指定されていません'
+      raise StandardError, "ファイルが指定されていません"
     end
   end
-end 
+end

@@ -16,7 +16,7 @@
 # - POST /api/v1/kpt_sessions/:id/save_template テンプレート保存
 class Api::V1::KptSessionsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_kpt_session, only: [:show, :update, :destroy, :complete, :save_template]
+  before_action :set_kpt_session, only: [ :show, :update, :destroy, :complete, :save_template ]
 
   # KPTセッション一覧を取得
   def index
@@ -27,8 +27,8 @@ class Api::V1::KptSessionsController < ApplicationController
       sessions = sessions.by_status(params[:status]) if params[:status].present?
       sessions = sessions.with_tag(params[:tag]) if params[:tag].present?
       sessions = sessions.where(session_date: params[:session_date]) if params[:session_date].present?
-      sessions = sessions.templates if params[:templates] == 'true'
-      sessions = sessions.not_templates if params[:templates] == 'false'
+      sessions = sessions.templates if params[:templates] == "true"
+      sessions = sessions.not_templates if params[:templates] == "false"
 
       # ソート（日付指定がある場合は作成日時順、そうでなければ最新順）
       if params[:session_date].present?
@@ -39,7 +39,7 @@ class Api::V1::KptSessionsController < ApplicationController
 
       # ページネーション
       page = params[:page]&.to_i || 1
-      per_page = [params[:per_page]&.to_i || 20, 100].min
+      per_page = [ params[:per_page]&.to_i || 20, 100 ].min
 
       total_count = sessions.count
       sessions = sessions.offset((page - 1) * per_page).limit(per_page)
@@ -58,10 +58,10 @@ class Api::V1::KptSessionsController < ApplicationController
             total_count: total_count
           }
         },
-        message: 'セッション一覧を取得しました'
+        message: "セッション一覧を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'セッション一覧の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッション一覧の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -73,10 +73,10 @@ class Api::V1::KptSessionsController < ApplicationController
       render json: {
         success: true,
         data: session_data,
-        message: 'セッション詳細を取得しました'
+        message: "セッション詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'セッション詳細の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッション詳細の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -91,19 +91,19 @@ class Api::V1::KptSessionsController < ApplicationController
         render json: {
           success: true,
           data: session_data,
-          message: 'セッションを作成しました'
+          message: "セッションを作成しました"
         }, status: :created
       else
         render json: {
           success: false,
-          error: 'セッションの作成に失敗しました',
+          error: "セッションの作成に失敗しました",
           details: @kpt_session.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'セッションの作成中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッションの作成中にエラーが発生しました", status: :internal_server_error)
     end
-  end 
+  end
 
   # セッションを更新
   # セッションを更新
@@ -115,17 +115,17 @@ class Api::V1::KptSessionsController < ApplicationController
         render json: {
           success: true,
           data: session_data,
-          message: 'セッションを更新しました'
+          message: "セッションを更新しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'セッションの更新に失敗しました',
+          error: "セッションの更新に失敗しました",
           details: @kpt_session.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'セッションの更新中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッションの更新中にエラーが発生しました", status: :internal_server_error)
     end
   end  # ← これを追加
 
@@ -135,40 +135,40 @@ class Api::V1::KptSessionsController < ApplicationController
       if @kpt_session.destroy
         render json: {
           success: true,
-          message: 'セッションを削除しました'
+          message: "セッションを削除しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'セッションの削除に失敗しました',
+          error: "セッションの削除に失敗しました",
           details: @kpt_session.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'セッションの削除中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッションの削除中にエラーが発生しました", status: :internal_server_error)
     end
   end  # ← これを追加
 
   # セッションを完了
   def complete
     begin
-      if @kpt_session.update(status: 'completed')
+      if @kpt_session.update(status: "completed")
         session_data = format_session_detail(@kpt_session)
 
         render json: {
           success: true,
           data: session_data,
-          message: 'セッションを完了しました'
+          message: "セッションを完了しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'セッションの完了に失敗しました',
+          error: "セッションの完了に失敗しました",
           details: @kpt_session.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'セッション完了処理中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "セッション完了処理中にエラーが発生しました", status: :internal_server_error)
     end
   end  # ← これを追加
 
@@ -176,11 +176,11 @@ class Api::V1::KptSessionsController < ApplicationController
   def save_template
     begin
       template_name = params[:template_name]
-      
+
       if template_name.blank?
         render json: {
           success: false,
-          error: 'テンプレート名を入力してください'
+          error: "テンプレート名を入力してください"
         }, status: :unprocessable_entity
         return
       end
@@ -193,17 +193,17 @@ class Api::V1::KptSessionsController < ApplicationController
         render json: {
           success: true,
           data: template_data,
-          message: 'テンプレートとして保存しました'
+          message: "テンプレートとして保存しました"
         }, status: :created
       else
         render json: {
           success: false,
-          error: 'テンプレートの保存に失敗しました',
+          error: "テンプレートの保存に失敗しました",
           details: template.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'テンプレート保存中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "テンプレート保存中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -214,7 +214,7 @@ class Api::V1::KptSessionsController < ApplicationController
       end_date = params[:end_date]&.to_date || Date.current
 
       sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
-      
+
       stats_data = {
         period: {
           start_date: start_date,
@@ -233,7 +233,7 @@ class Api::V1::KptSessionsController < ApplicationController
           popular_tags: KptSession.popular_tags(current_user, 10)
         },
         averages: {
-          items_per_session: sessions.joins(:kpt_items).count.to_f / [sessions.count, 1].max,
+          items_per_session: sessions.joins(:kpt_items).count.to_f / [ sessions.count, 1 ].max,
           completion_rate: calculate_session_completion_rate(sessions),
           days_to_complete: calculate_average_completion_time(sessions)
         }
@@ -242,10 +242,10 @@ class Api::V1::KptSessionsController < ApplicationController
       render json: {
         success: true,
         data: stats_data,
-        message: 'セッション統計を取得しました'
+        message: "セッション統計を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '統計データの取得に失敗しました', status: :internal_server_error)
+      render_error(error: "統計データの取得に失敗しました", status: :internal_server_error)
     end
   end
 
@@ -257,7 +257,7 @@ class Api::V1::KptSessionsController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,
-      error: 'セッションが見つかりません'
+      error: "セッションが見つかりません"
     }, status: :not_found
   end
 
@@ -369,4 +369,4 @@ class Api::V1::KptSessionsController < ApplicationController
       error: error
     }, status: status
   end
-end 
+end

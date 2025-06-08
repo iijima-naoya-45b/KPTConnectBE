@@ -3,7 +3,7 @@
 # 通知APIコントローラー
 class Api::V1::NotificationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_notification, only: [:show, :update, :destroy, :read]
+  before_action :set_notification, only: [ :show, :update, :destroy, :read ]
 
   # 通知一覧を取得
   def index
@@ -12,12 +12,12 @@ class Api::V1::NotificationsController < ApplicationController
 
       # フィルター適用
       notifications = notifications.where(notification_type: params[:type]) if params[:type].present?
-      notifications = notifications.where(is_read: params[:is_read] == 'true') if params[:is_read].present?
+      notifications = notifications.where(is_read: params[:is_read] == "true") if params[:is_read].present?
       notifications = notifications.where(priority: params[:priority]) if params[:priority].present?
 
       # ページネーション
       page = params[:page]&.to_i || 1
-      per_page = [params[:per_page]&.to_i || 20, 100].min
+      per_page = [ params[:per_page]&.to_i || 20, 100 ].min
 
       total_count = notifications.count
       notifications = notifications.offset((page - 1) * per_page).limit(per_page)
@@ -37,16 +37,16 @@ class Api::V1::NotificationsController < ApplicationController
           },
           summary: {
             unread_count: current_user.notifications.unread.count,
-            today_count: current_user.notifications.where('created_at >= ?', Date.current.beginning_of_day).count,
+            today_count: current_user.notifications.where("created_at >= ?", Date.current.beginning_of_day).count,
             priority_counts: current_user.notifications.group(:priority).count
           }
         },
-        message: '通知一覧を取得しました'
+        message: "通知一覧を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知一覧の取得に失敗しました',
+        error: "通知一覧の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -63,12 +63,12 @@ class Api::V1::NotificationsController < ApplicationController
       render json: {
         success: true,
         data: notification_data,
-        message: '通知詳細を取得しました'
+        message: "通知詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知詳細の取得に失敗しました',
+        error: "通知詳細の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -81,19 +81,19 @@ class Api::V1::NotificationsController < ApplicationController
         render json: {
           success: true,
           data: format_notification_summary(@notification),
-          message: '通知を既読にしました'
+          message: "通知を既読にしました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '通知の既読処理に失敗しました',
+          error: "通知の既読処理に失敗しました",
           details: @notification.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '既読処理中にエラーが発生しました',
+        error: "既読処理中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -119,7 +119,7 @@ class Api::V1::NotificationsController < ApplicationController
     rescue StandardError => e
       render json: {
         success: false,
-        error: '一括既読処理に失敗しました',
+        error: "一括既読処理に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -131,19 +131,19 @@ class Api::V1::NotificationsController < ApplicationController
       if @notification.destroy
         render json: {
           success: true,
-          message: '通知を削除しました'
+          message: "通知を削除しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '通知の削除に失敗しました',
+          error: "通知の削除に失敗しました",
           details: @notification.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知削除中にエラーが発生しました',
+        error: "通知削除中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -163,12 +163,12 @@ class Api::V1::NotificationsController < ApplicationController
       render json: {
         success: true,
         data: settings_data,
-        message: '通知設定を取得しました'
+        message: "通知設定を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知設定の取得に失敗しました',
+        error: "通知設定の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -209,12 +209,12 @@ class Api::V1::NotificationsController < ApplicationController
       render json: {
         success: true,
         data: updated_settings,
-        message: '通知設定を更新しました'
+        message: "通知設定を更新しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知設定の更新に失敗しました',
+        error: "通知設定の更新に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -223,15 +223,15 @@ class Api::V1::NotificationsController < ApplicationController
   # テスト通知を送信
   def test
     begin
-      notification_type = params[:type] || 'test'
-      
+      notification_type = params[:type] || "test"
+
       notification = current_user.notifications.create!(
-        notification_type: 'system',
-        title: 'テスト通知',
-        message: 'これはテスト通知です。通知機能が正常に動作しています。',
-        priority: 'normal',
+        notification_type: "system",
+        title: "テスト通知",
+        message: "これはテスト通知です。通知機能が正常に動作しています。",
+        priority: "normal",
         is_read: false,
-        action_url: '/dashboard',
+        action_url: "/dashboard",
         metadata: {
           test: true,
           sent_at: Time.current.iso8601
@@ -239,18 +239,18 @@ class Api::V1::NotificationsController < ApplicationController
       )
 
       # 実際の実装では、ここでプッシュ通知やメール送信を行う
-      send_push_notification(notification) if should_send_push_notification?('system')
-      send_email_notification(notification) if should_send_email_notification?('system')
+      send_push_notification(notification) if should_send_push_notification?("system")
+      send_email_notification(notification) if should_send_email_notification?("system")
 
       render json: {
         success: true,
         data: format_notification_detail(notification),
-        message: 'テスト通知を送信しました'
+        message: "テスト通知を送信しました"
       }, status: :created
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'テスト通知の送信に失敗しました',
+        error: "テスト通知の送信に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -262,7 +262,7 @@ class Api::V1::NotificationsController < ApplicationController
       days = params[:days]&.to_i || 30
       start_date = days.days.ago
 
-      notifications = current_user.notifications.where('created_at >= ?', start_date)
+      notifications = current_user.notifications.where("created_at >= ?", start_date)
 
       stats_data = {
         period: {
@@ -284,12 +284,12 @@ class Api::V1::NotificationsController < ApplicationController
       render json: {
         success: true,
         data: stats_data,
-        message: '通知統計を取得しました'
+        message: "通知統計を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '通知統計の取得に失敗しました',
+        error: "通知統計の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -303,7 +303,7 @@ class Api::V1::NotificationsController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,
-      error: '通知が見つかりません'
+      error: "通知が見つかりません"
     }, status: :not_found
   end
 
@@ -347,53 +347,53 @@ class Api::V1::NotificationsController < ApplicationController
   # メール通知設定を整形
   def format_email_notification_settings
     {
-      enabled: current_user.get_setting('email_notifications_enabled', 'true') == 'true',
-      kpt_session_completed: current_user.get_setting('email_kpt_session_completed', 'true') == 'true',
-      weekly_summary: current_user.get_setting('email_weekly_summary', 'true') == 'true',
-      item_reminders: current_user.get_setting('email_item_reminders', 'true') == 'true',
-      system_updates: current_user.get_setting('email_system_updates', 'false') == 'true',
-      marketing: current_user.get_setting('email_marketing', 'false') == 'true'
+      enabled: current_user.get_setting("email_notifications_enabled", "true") == "true",
+      kpt_session_completed: current_user.get_setting("email_kpt_session_completed", "true") == "true",
+      weekly_summary: current_user.get_setting("email_weekly_summary", "true") == "true",
+      item_reminders: current_user.get_setting("email_item_reminders", "true") == "true",
+      system_updates: current_user.get_setting("email_system_updates", "false") == "true",
+      marketing: current_user.get_setting("email_marketing", "false") == "true"
     }
   end
 
   # プッシュ通知設定を整形
   def format_push_notification_settings
     {
-      enabled: current_user.get_setting('push_notifications_enabled', 'true') == 'true',
-      browser_enabled: current_user.get_setting('push_browser_enabled', 'true') == 'true',
-      kpt_reminders: current_user.get_setting('push_kpt_reminders', 'true') == 'true',
-      item_due_alerts: current_user.get_setting('push_item_due_alerts', 'true') == 'true',
-      achievement_alerts: current_user.get_setting('push_achievement_alerts', 'true') == 'true'
+      enabled: current_user.get_setting("push_notifications_enabled", "true") == "true",
+      browser_enabled: current_user.get_setting("push_browser_enabled", "true") == "true",
+      kpt_reminders: current_user.get_setting("push_kpt_reminders", "true") == "true",
+      item_due_alerts: current_user.get_setting("push_item_due_alerts", "true") == "true",
+      achievement_alerts: current_user.get_setting("push_achievement_alerts", "true") == "true"
     }
   end
 
   # アプリ内通知設定を整形
   def format_in_app_notification_settings
     {
-      enabled: current_user.get_setting('in_app_notifications_enabled', 'true') == 'true',
-      show_badge: current_user.get_setting('in_app_show_badge', 'true') == 'true',
-      auto_read_time: current_user.get_setting('in_app_auto_read_time', '0').to_i,
-      sound_enabled: current_user.get_setting('in_app_sound_enabled', 'true') == 'true'
+      enabled: current_user.get_setting("in_app_notifications_enabled", "true") == "true",
+      show_badge: current_user.get_setting("in_app_show_badge", "true") == "true",
+      auto_read_time: current_user.get_setting("in_app_auto_read_time", "0").to_i,
+      sound_enabled: current_user.get_setting("in_app_sound_enabled", "true") == "true"
     }
   end
 
   # 頻度設定を整形
   def format_frequency_settings
     {
-      daily_digest_time: current_user.get_setting('daily_digest_time', '09:00'),
-      weekly_summary_day: current_user.get_setting('weekly_summary_day', '1').to_i,
-      reminder_frequency: current_user.get_setting('reminder_frequency', 'daily'),
-      max_notifications_per_day: current_user.get_setting('max_notifications_per_day', '10').to_i
+      daily_digest_time: current_user.get_setting("daily_digest_time", "09:00"),
+      weekly_summary_day: current_user.get_setting("weekly_summary_day", "1").to_i,
+      reminder_frequency: current_user.get_setting("reminder_frequency", "daily"),
+      max_notifications_per_day: current_user.get_setting("max_notifications_per_day", "10").to_i
     }
   end
 
   # 通知停止時間設定を整形
   def format_quiet_hours_settings
     {
-      enabled: current_user.get_setting('quiet_hours_enabled', 'false') == 'true',
-      start_time: current_user.get_setting('quiet_hours_start', '22:00'),
-      end_time: current_user.get_setting('quiet_hours_end', '08:00'),
-      timezone: current_user.timezone || 'Asia/Tokyo'
+      enabled: current_user.get_setting("quiet_hours_enabled", "false") == "true",
+      start_time: current_user.get_setting("quiet_hours_start", "22:00"),
+      end_time: current_user.get_setting("quiet_hours_end", "08:00"),
+      timezone: current_user.timezone || "Asia/Tokyo"
     }
   end
 
@@ -430,33 +430,33 @@ class Api::V1::NotificationsController < ApplicationController
 
   # 通知送信判定メソッド
   def should_send_push_notification?(notification_type)
-    return false unless current_user.get_setting('push_notifications_enabled', 'true') == 'true'
+    return false unless current_user.get_setting("push_notifications_enabled", "true") == "true"
     return false if in_quiet_hours?
-    
+
     case notification_type
-    when 'kpt_reminder'
-      current_user.get_setting('push_kpt_reminders', 'true') == 'true'
-    when 'item_due'
-      current_user.get_setting('push_item_due_alerts', 'true') == 'true'
-    when 'achievement'
-      current_user.get_setting('push_achievement_alerts', 'true') == 'true'
+    when "kpt_reminder"
+      current_user.get_setting("push_kpt_reminders", "true") == "true"
+    when "item_due"
+      current_user.get_setting("push_item_due_alerts", "true") == "true"
+    when "achievement"
+      current_user.get_setting("push_achievement_alerts", "true") == "true"
     else
       true
     end
   end
 
   def should_send_email_notification?(notification_type)
-    return false unless current_user.get_setting('email_notifications_enabled', 'true') == 'true'
-    
+    return false unless current_user.get_setting("email_notifications_enabled", "true") == "true"
+
     case notification_type
-    when 'kpt_session_completed'
-      current_user.get_setting('email_kpt_session_completed', 'true') == 'true'
-    when 'weekly_summary'
-      current_user.get_setting('email_weekly_summary', 'true') == 'true'
-    when 'item_reminder'
-      current_user.get_setting('email_item_reminders', 'true') == 'true'
-    when 'system'
-      current_user.get_setting('email_system_updates', 'false') == 'true'
+    when "kpt_session_completed"
+      current_user.get_setting("email_kpt_session_completed", "true") == "true"
+    when "weekly_summary"
+      current_user.get_setting("email_weekly_summary", "true") == "true"
+    when "item_reminder"
+      current_user.get_setting("email_item_reminders", "true") == "true"
+    when "system"
+      current_user.get_setting("email_system_updates", "false") == "true"
     else
       false
     end
@@ -464,14 +464,14 @@ class Api::V1::NotificationsController < ApplicationController
 
   # 通知停止時間内かどうか判定
   def in_quiet_hours?
-    return false unless current_user.get_setting('quiet_hours_enabled', 'false') == 'true'
-    
-    start_time = current_user.get_setting('quiet_hours_start', '22:00')
-    end_time = current_user.get_setting('quiet_hours_end', '08:00')
-    user_timezone = current_user.timezone || 'Asia/Tokyo'
-    
-    current_time = Time.current.in_time_zone(user_timezone).strftime('%H:%M')
-    
+    return false unless current_user.get_setting("quiet_hours_enabled", "false") == "true"
+
+    start_time = current_user.get_setting("quiet_hours_start", "22:00")
+    end_time = current_user.get_setting("quiet_hours_end", "08:00")
+    user_timezone = current_user.timezone || "Asia/Tokyo"
+
+    current_time = Time.current.in_time_zone(user_timezone).strftime("%H:%M")
+
     if start_time < end_time
       current_time >= start_time && current_time <= end_time
     else
@@ -497,18 +497,18 @@ class Api::V1::NotificationsController < ApplicationController
   def calculate_average_response_time(notifications)
     read_notifications = notifications.where(is_read: true).where.not(read_at: nil)
     return 0 if read_notifications.count.zero?
-    
+
     total_seconds = read_notifications.sum do |n|
       (n.read_at - n.created_at).to_i
     end
-    
+
     (total_seconds / read_notifications.count / 3600.0).round(2) # 時間単位
   end
 
   def generate_daily_notification_trends(notifications, start_date)
     (start_date.to_date..Date.current).map do |date|
       day_notifications = notifications.where(created_at: date.beginning_of_day..date.end_of_day)
-      
+
       {
         date: date,
         total: day_notifications.count,
@@ -521,18 +521,18 @@ class Api::V1::NotificationsController < ApplicationController
   # 表示用ヘルパーメソッド
   def notification_type_ja(type)
     case type
-    when 'kpt_reminder'
-      'KPTリマインダー'
-    when 'item_due'
-      'アイテム期限'
-    when 'kpt_session_completed'
-      'KPTセッション完了'
-    when 'weekly_summary'
-      '週次サマリー'
-    when 'achievement'
-      '実績解除'
-    when 'system'
-      'システム通知'
+    when "kpt_reminder"
+      "KPTリマインダー"
+    when "item_due"
+      "アイテム期限"
+    when "kpt_session_completed"
+      "KPTセッション完了"
+    when "weekly_summary"
+      "週次サマリー"
+    when "achievement"
+      "実績解除"
+    when "system"
+      "システム通知"
     else
       type
     end
@@ -540,14 +540,14 @@ class Api::V1::NotificationsController < ApplicationController
 
   def priority_name_ja(priority)
     case priority
-    when 'low'
-      '低'
-    when 'normal'
-      '通常'
-    when 'high'
-      '高'
-    when 'urgent'
-      '緊急'
+    when "low"
+      "低"
+    when "normal"
+      "通常"
+    when "high"
+      "高"
+    when "urgent"
+      "緊急"
     else
       priority
     end
@@ -555,7 +555,7 @@ class Api::V1::NotificationsController < ApplicationController
 
   def time_ago_in_words(time)
     diff = Time.current - time
-    
+
     case diff
     when 0..59
       "#{diff.to_i}秒前"
@@ -567,4 +567,4 @@ class Api::V1::NotificationsController < ApplicationController
       "#{(diff / 86400).to_i}日前"
     end
   end
-end 
+end

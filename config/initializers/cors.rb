@@ -8,7 +8,7 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
     # フロントエンドのオリジンを指定
-    origins "http://localhost:3000"  # 開発環境用
+    origins "http://localhost:3000", "https://kpt-connect.biz"
     # origins "https://your-production-domain.com"  # 本番環境用
 
     resource "*",

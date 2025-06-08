@@ -11,11 +11,11 @@ class CreateFeedbackTypes < ActiveRecord::Migration[8.0]
       t.string :name, null: false, limit: 100, comment: 'フィードバック種別名'
       t.string :key, null: false, limit: 50, comment: 'フィードバック種別キー（システム内部用）'
       t.text :description, comment: 'フィードバック種別説明'
-      
+
       # 表示制御
       t.integer :display_order, null: false, default: 0, comment: '表示順序'
       t.boolean :is_active, null: false, default: true, comment: 'アクティブ状態'
-      
+
       # 管理用
       t.string :color_code, limit: 7, comment: '表示用カラーコード（#FFFFFF形式）'
       t.string :icon_name, limit: 50, comment: 'アイコン名'
@@ -25,7 +25,7 @@ class CreateFeedbackTypes < ActiveRecord::Migration[8.0]
 
     # インデックス追加
     add_index :feedback_types, :key, unique: true, name: 'index_feedback_types_on_key'
-    add_index :feedback_types, [:is_active, :display_order], name: 'index_feedback_types_on_active_and_order'
+    add_index :feedback_types, [ :is_active, :display_order ], name: 'index_feedback_types_on_active_and_order'
 
     # 初期データ挿入
     reversible do |dir|
@@ -39,7 +39,7 @@ class CreateFeedbackTypes < ActiveRecord::Migration[8.0]
           ('その他', 'other', '上記以外のフィードバックや質問', 4, '#6b7280', 'question-mark', NOW(), NOW());
         SQL
       end
-      
+
       dir.down do
         execute "DELETE FROM feedback_types WHERE key IN ('bug', 'feature', 'improvement', 'other');"
       end

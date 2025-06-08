@@ -11,7 +11,7 @@ class CreateWorkLogKptLinks < ActiveRecord::Migration[7.0]
 
       # 関連の質を示すスコア
       t.integer :relevance_score
-      t.check_constraint 'relevance_score >= 1 AND relevance_score <= 5', 
+      t.check_constraint 'relevance_score >= 1 AND relevance_score <= 5',
                          name: 'check_work_log_kpt_links_relevance_score'
 
       # 関連付けの理由・メモ
@@ -22,11 +22,11 @@ class CreateWorkLogKptLinks < ActiveRecord::Migration[7.0]
     end
 
     # 複合ユニークインデックス（同じ組み合わせの重複防止）
-    add_index :work_log_kpt_links, [:work_log_id, :kpt_session_id], 
+    add_index :work_log_kpt_links, [ :work_log_id, :kpt_session_id ],
               unique: true, name: 'index_work_log_kpt_links_unique'
 
     # 個別インデックス
     add_index :work_log_kpt_links, :relevance_score
     add_index :work_log_kpt_links, :created_at
   end
-end 
+end

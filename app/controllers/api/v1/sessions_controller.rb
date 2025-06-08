@@ -3,7 +3,7 @@
 class Api::V1::SessionsController < ApplicationController
   def create
     user = login(params[:email], params[:password])
-    
+
     if user
       payload = { user_id: user.id }.to_json
 

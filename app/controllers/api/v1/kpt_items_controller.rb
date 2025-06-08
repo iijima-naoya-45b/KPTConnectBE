@@ -3,7 +3,7 @@
 # KPTアイテムAPIコントローラー
 class Api::V1::KptItemsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_kpt_item, only: [:show, :update, :destroy, :complete, :reopen, :move, :copy, :link_work_log, :unlink_work_log]
+  before_action :set_kpt_item, only: [ :show, :update, :destroy, :complete, :reopen, :move, :copy, :link_work_log, :unlink_work_log ]
 
   # KPTアイテム一覧を取得
   def index
@@ -22,7 +22,7 @@ class Api::V1::KptItemsController < ApplicationController
 
       # ページネーション
       page = params[:page]&.to_i || 1
-      per_page = [params[:per_page]&.to_i || 20, 100].min
+      per_page = [ params[:per_page]&.to_i || 20, 100 ].min
 
       total_count = items.count
       items = items.offset((page - 1) * per_page).limit(per_page)
@@ -41,10 +41,10 @@ class Api::V1::KptItemsController < ApplicationController
             total_count: total_count
           }
         },
-        message: 'アイテム一覧を取得しました'
+        message: "アイテム一覧を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'KPT項目一覧の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "KPT項目一覧の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -56,10 +56,10 @@ class Api::V1::KptItemsController < ApplicationController
       render json: {
         success: true,
         data: item_data,
-        message: 'アイテム詳細を取得しました'
+        message: "アイテム詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'アイテム詳細の取得に失敗しました', status: :internal_server_error)
+      render_error(error: "アイテム詳細の取得に失敗しました", status: :internal_server_error)
     end
   end
 
@@ -75,13 +75,13 @@ class Api::V1::KptItemsController < ApplicationController
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムを作成しました'
+          message: "アイテムを作成しました"
         }, status: :created
       else
         Rails.logger.error "KPT項目バリデーションエラー: #{@kpt_item.errors.full_messages}"
         render json: {
           success: false,
-          error: 'アイテムの作成に失敗しました',
+          error: "アイテムの作成に失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
@@ -89,12 +89,12 @@ class Api::V1::KptItemsController < ApplicationController
       Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
-        error: 'セッションが見つかりません'
+        error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       Rails.logger.error "KPT項目作成エラー: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      render_error(error: 'アイテムの作成中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムの作成中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -107,17 +107,17 @@ class Api::V1::KptItemsController < ApplicationController
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムを更新しました'
+          message: "アイテムを更新しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムの更新に失敗しました',
+          error: "アイテムの更新に失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'アイテムの更新中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムの更新中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -127,63 +127,63 @@ class Api::V1::KptItemsController < ApplicationController
       if @kpt_item.destroy
         render json: {
           success: true,
-          message: 'アイテムを削除しました'
+          message: "アイテムを削除しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムの削除に失敗しました',
+          error: "アイテムの削除に失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'アイテムの削除中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムの削除中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを完了
   def complete
     begin
-      if @kpt_item.update(status: 'completed')
+      if @kpt_item.update(status: "completed")
         item_data = format_kpt_item_detail(@kpt_item)
 
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムを完了しました'
+          message: "アイテムを完了しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムの完了に失敗しました',
+          error: "アイテムの完了に失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'アイテム完了処理中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテム完了処理中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを再オープン
   def reopen
     begin
-      if @kpt_item.update(status: 'reopened')
+      if @kpt_item.update(status: "reopened")
         item_data = format_kpt_item_detail(@kpt_item)
 
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムを再オープンしました'
+          message: "アイテムを再オープンしました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムの再オープンに失敗しました',
+          error: "アイテムの再オープンに失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      render_error(error: 'アイテム再オープン処理中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテム再オープン処理中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -197,12 +197,12 @@ class Api::V1::KptItemsController < ApplicationController
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムを移動しました'
+          message: "アイテムを移動しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムの移動に失敗しました',
+          error: "アイテムの移動に失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
@@ -210,12 +210,12 @@ class Api::V1::KptItemsController < ApplicationController
       Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
-        error: 'セッションが見つかりません'
+        error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       Rails.logger.error "KPT項目移動エラー: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      render_error(error: 'アイテムの移動中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムの移動中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -232,13 +232,13 @@ class Api::V1::KptItemsController < ApplicationController
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムをコピーしました'
+          message: "アイテムをコピーしました"
         }, status: :created
       else
         Rails.logger.error "KPT項目コピーエラー: #{@kpt_item.errors.full_messages}"
         render json: {
           success: false,
-          error: 'アイテムのコピーに失敗しました',
+          error: "アイテムのコピーに失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
@@ -246,12 +246,12 @@ class Api::V1::KptItemsController < ApplicationController
       Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
-        error: 'セッションが見つかりません'
+        error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       Rails.logger.error "KPT項目コピーエラー: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      render_error(error: 'アイテムのコピー中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムのコピー中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -262,7 +262,7 @@ class Api::V1::KptItemsController < ApplicationController
       if @kpt_item.work_logs.include?(work_log)
         render json: {
           success: false,
-          error: 'このアイテムには既にこの作業ログがリンクされています'
+          error: "このアイテムには既にこの作業ログがリンクされています"
         }, status: :unprocessable_entity
         return
       end
@@ -273,12 +273,12 @@ class Api::V1::KptItemsController < ApplicationController
         render json: {
           success: true,
           data: item_data,
-          message: 'アイテムに作業ログをリンクしました'
+          message: "アイテムに作業ログをリンクしました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: 'アイテムに作業ログのリンクに失敗しました',
+          error: "アイテムに作業ログのリンクに失敗しました",
           details: @kpt_item.errors.full_messages
         }, status: :unprocessable_entity
       end
@@ -286,12 +286,12 @@ class Api::V1::KptItemsController < ApplicationController
       Rails.logger.error "作業ログ未発見エラー: #{e.message}"
       render json: {
         success: false,
-        error: '作業ログが見つかりません'
+        error: "作業ログが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       Rails.logger.error "KPT項目作業ログリンクエラー: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      render_error(error: 'アイテムに作業ログのリンク中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムに作業ログのリンク中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -306,31 +306,31 @@ class Api::V1::KptItemsController < ApplicationController
           render json: {
             success: true,
             data: item_data,
-            message: 'アイテムから作業ログをアンリンクしました'
+            message: "アイテムから作業ログをアンリンクしました"
           }, status: :ok
         else
           render json: {
             success: false,
-            error: 'アイテムから作業ログのアンリンクに失敗しました',
+            error: "アイテムから作業ログのアンリンクに失敗しました",
             details: @kpt_item.errors.full_messages
           }, status: :unprocessable_entity
         end
       else
         render json: {
           success: false,
-          error: 'このアイテムにはこの作業ログがリンクされていません'
+          error: "このアイテムにはこの作業ログがリンクされていません"
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
       Rails.logger.error "作業ログ未発見エラー: #{e.message}"
       render json: {
         success: false,
-        error: '作業ログが見つかりません'
+        error: "作業ログが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       Rails.logger.error "KPT項目作業ログアンリンクエラー: #{e.class.name} - #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
-      render_error(error: 'アイテムから作業ログのアンリンク中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アイテムから作業ログのアンリンク中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -341,7 +341,7 @@ class Api::V1::KptItemsController < ApplicationController
       end_date = params[:end_date]&.to_date || Date.current
 
       stats_data = KptItem.type_stats(current_user, start_date, end_date)
-      
+
       # 追加統計
       additional_stats = {
         period: {
@@ -359,10 +359,10 @@ class Api::V1::KptItemsController < ApplicationController
           type_stats: stats_data,
           **additional_stats
         },
-        message: 'アイテム統計を取得しました'
+        message: "アイテム統計を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '統計データの取得に失敗しました', status: :internal_server_error)
+      render_error(error: "統計データの取得に失敗しました", status: :internal_server_error)
     end
   end
 
@@ -370,7 +370,7 @@ class Api::V1::KptItemsController < ApplicationController
   def trends
     begin
       days = params[:days]&.to_i || 30
-      days = [days, 365].min # 最大1年
+      days = [ days, 365 ].min # 最大1年
       days = 7 if days < 7    # 最小1週間
 
       trends_data = {
@@ -387,7 +387,7 @@ class Api::V1::KptItemsController < ApplicationController
         message: "#{days}日間の傾向分析を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '傾向分析の取得に失敗しました', status: :internal_server_error)
+      render_error(error: "傾向分析の取得に失敗しました", status: :internal_server_error)
     end
   end
 
@@ -399,7 +399,7 @@ class Api::V1::KptItemsController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,
-      error: 'アイテムが見つかりません'
+      error: "アイテムが見つかりません"
     }, status: :not_found
   end
 
@@ -499,7 +499,7 @@ class Api::V1::KptItemsController < ApplicationController
       week_start = (i * 7).days.ago.to_date
       week_end = ((i * 7) - 6).days.ago.to_date
       week_items = items.where(created_at: week_end..week_start.end_of_day)
-      
+
       weekly_data << {
         week: "#{week_end.strftime('%m/%d')}-#{week_start.strftime('%m/%d')}",
         total: week_items.count,
@@ -521,13 +521,13 @@ class Api::V1::KptItemsController < ApplicationController
                         .where(kpt_sessions: { session_date: start_date..Date.current })
 
     distribution = items.group(:priority).group(:status).count
-    
+
     {
       distribution: distribution,
       summary: {
         high_priority: items.high_priority.count,
-        medium_priority: items.where(priority: 'medium').count,
-        low_priority: items.where(priority: 'low').count
+        medium_priority: items.where(priority: "medium").count,
+        low_priority: items.where(priority: "low").count
       }
     }
   end
@@ -538,4 +538,4 @@ class Api::V1::KptItemsController < ApplicationController
       error: error
     }, status: status
   end
-end 
+end

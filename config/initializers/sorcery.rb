@@ -169,7 +169,7 @@ Rails.application.config.sorcery.configure do |config|
   config.google.key = ENV["GOOGLE_KEY"]
   config.google.secret = ENV["GOOGLE_SECRET"]
   config.google.callback_url = ENV["GOOGLE_CALLBACK_URL"]
-  config.google.user_info_mapping = { email: "email", username: "name", uid: 'id' }
+  config.google.user_info_mapping = { email: "email", username: "name", uid: "id" }
   config.google.scope = "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
   #
   # For Microsoft Graph, the key will be your App ID, and the secret will be your app password/public key.
@@ -250,9 +250,9 @@ Rails.application.config.sorcery.configure do |config|
   # config.battlenet.callback_url = "http://localhost:3000/oauth/callback?provider=battlenet"
   # config.battlenet.scope = "openid"
   # --- user config ---
-  config.user_class = 'User'
+  config.user_class = "User"
 
-  config.user_config do |user|    
+  config.user_config do |user|
     user.authentications_class = Authentication
     # -- core --
     # Specify username attributes, for example: [:username, :email].

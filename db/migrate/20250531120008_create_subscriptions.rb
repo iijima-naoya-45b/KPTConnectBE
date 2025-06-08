@@ -14,7 +14,7 @@ class CreateSubscriptions < ActiveRecord::Migration[7.0]
 
       # サブスクリプション状態
       t.string :status, null: false, limit: 50
-      t.check_constraint "status IN ('active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'trialing', 'unpaid')", 
+      t.check_constraint "status IN ('active', 'canceled', 'incomplete', 'incomplete_expired', 'past_due', 'trialing', 'unpaid')",
                          name: 'check_subscriptions_status'
 
       # 期間情報
@@ -28,7 +28,7 @@ class CreateSubscriptions < ActiveRecord::Migration[7.0]
       # プラン情報
       t.string :plan_name, limit: 100
       t.string :billing_cycle, limit: 20
-      t.check_constraint "billing_cycle IN ('monthly', 'yearly')", 
+      t.check_constraint "billing_cycle IN ('monthly', 'yearly')",
                          name: 'check_subscriptions_billing_cycle'
 
       # Rails標準のタイムスタンプ
@@ -42,7 +42,7 @@ class CreateSubscriptions < ActiveRecord::Migration[7.0]
     add_index :subscriptions, :current_period_end
     add_index :subscriptions, :plan_name
     add_index :subscriptions, :billing_cycle
-    add_index :subscriptions, [:user_id, :status]
-    add_index :subscriptions, [:status, :current_period_end]
+    add_index :subscriptions, [ :user_id, :status ]
+    add_index :subscriptions, [ :status, :current_period_end ]
   end
-end 
+end

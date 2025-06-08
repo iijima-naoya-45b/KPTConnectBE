@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # KPTアイテムモデル
-# 
+#
 # @description Keep, Problem, Tryの各アイテムを管理するモデル
 # セッション内の個別アイテム、優先度、ステータス、感情/インパクトスコアを管理
-# 
+#
 # @attr [UUID] kpt_session_id KPTセッションID
 # @attr [String] type アイテムタイプ (keep, problem, try)
 # @attr [String] content アイテム内容
@@ -36,20 +36,20 @@ class KptItem < ApplicationRecord
   validates :assigned_to, length: { maximum: 100 }
 
   # スコープ
-  scope :keeps, -> { where(type: 'keep') }
-  scope :problems, -> { where(type: 'problem') }
-  scope :tries, -> { where(type: 'try') }
+  scope :keeps, -> { where(type: "keep") }
+  scope :problems, -> { where(type: "problem") }
+  scope :tries, -> { where(type: "try") }
   scope :by_priority, ->(priority) { where(priority: priority) }
   scope :by_status, ->(status) { where(status: status) }
-  scope :completed, -> { where(status: 'completed') }
-  scope :active, -> { where.not(status: ['completed', 'cancelled']) }
-  scope :overdue, -> { where('due_date < ?', Date.current).active }
+  scope :completed, -> { where(status: "completed") }
+  scope :active, -> { where.not(status: [ "completed", "cancelled" ]) }
+  scope :overdue, -> { where("due_date < ?", Date.current).active }
   scope :due_soon, -> { where(due_date: Date.current..3.days.from_now).active }
   scope :with_emotion_score, -> { where.not(emotion_score: nil) }
   scope :with_impact_score, -> { where.not(impact_score: nil) }
-  scope :high_priority, -> { where(priority: 'high') }
+  scope :high_priority, -> { where(priority: "high") }
   scope :recent, -> { order(created_at: :desc) }
-  scope :with_tag, ->(tag) { where('? = ANY(tags)', tag) }
+  scope :with_tag, ->(tag) { where("? = ANY(tags)", tag) }
 
   # コールバック
   after_update :update_completed_at, if: :completed_status_changed?
@@ -59,7 +59,7 @@ class KptItem < ApplicationRecord
   # アイテムが完了しているかチェック
   # @return [Boolean] 完了状態
   def completed?
-    status == 'completed'
+    status == "completed"
   end
 
   # アイテムがアクティブかチェック
@@ -84,12 +84,12 @@ class KptItem < ApplicationRecord
   # @return [String] 日本語タイプ名
   def type_name_ja
     case type
-    when 'keep'
-      'Keep (続けること)'
-    when 'problem'
-      'Problem (問題)'
-    when 'try'
-      'Try (試すこと)'
+    when "keep"
+      "Keep (続けること)"
+    when "problem"
+      "Problem (問題)"
+    when "try"
+      "Try (試すこと)"
     end
   end
 
@@ -97,12 +97,12 @@ class KptItem < ApplicationRecord
   # @return [String] 日本語優先度名
   def priority_name_ja
     case priority
-    when 'low'
-      '低'
-    when 'medium'
-      '中'
-    when 'high'
-      '高'
+    when "low"
+      "低"
+    when "medium"
+      "中"
+    when "high"
+      "高"
     end
   end
 
@@ -110,14 +110,14 @@ class KptItem < ApplicationRecord
   # @return [String] 日本語ステータス名
   def status_name_ja
     case status
-    when 'open'
-      '未着手'
-    when 'in_progress'
-      '進行中'
-    when 'completed'
-      '完了'
-    when 'cancelled'
-      'キャンセル'
+    when "open"
+      "未着手"
+    when "in_progress"
+      "進行中"
+    when "completed"
+      "完了"
+    when "cancelled"
+      "キャンセル"
     end
   end
 
@@ -127,10 +127,10 @@ class KptItem < ApplicationRecord
     emotion = emotion_score || 3.0
     impact = impact_score || 3.0
     priority_weight = case priority
-                     when 'low' then 1.0
-                     when 'medium' then 1.5
-                     when 'high' then 2.0
-                     end
+    when "low" then 1.0
+    when "medium" then 1.5
+    when "high" then 2.0
+    end
 
     ((emotion + impact) / 2.0) * priority_weight
   end
@@ -145,7 +145,7 @@ class KptItem < ApplicationRecord
         .where(kpt_sessions: { user_id: kpt_session.user_id })
         .where(type: type)
         .where.not(id: id)
-        .where('tags && ARRAY[?]', tags)
+        .where("tags && ARRAY[?]", tags)
         .limit(limit)
         .order(:created_at)
   end
@@ -191,7 +191,7 @@ class KptItem < ApplicationRecord
   def self.popular_tags(user, type_filter = nil, limit = 10)
     items = joins(:kpt_session).where(kpt_sessions: { user_id: user.id })
     items = items.where(type: type_filter) if type_filter
-    
+
     items.where.not(tags: [])
          .pluck(:tags)
          .flatten
@@ -212,7 +212,7 @@ class KptItem < ApplicationRecord
             .with_emotion_score
 
     daily_averages = items.joins(:kpt_session)
-                          .group('kpt_sessions.session_date')
+                          .group("kpt_sessions.session_date")
                           .average(:emotion_score)
 
     {
@@ -231,7 +231,7 @@ class KptItem < ApplicationRecord
             .with_impact_score
 
     distribution = items.group(:impact_score).count
-    
+
     {
       distribution: distribution,
       total_items: items.count,
@@ -243,31 +243,31 @@ class KptItem < ApplicationRecord
 
   # 完了日時を更新
   def update_completed_at
-    if status == 'completed' && completed_at.nil?
+    if status == "completed" && completed_at.nil?
       update_column(:completed_at, Time.current)
-    elsif status != 'completed' && completed_at.present?
+    elsif status != "completed" && completed_at.present?
       update_column(:completed_at, nil)
     end
   end
 
   # 完了ステータスが変更されたかチェック
   def completed_status_changed?
-    saved_change_to_status? && (status == 'completed' || status_before_last_save == 'completed')
+    saved_change_to_status? && (status == "completed" || status_before_last_save == "completed")
   end
 
   # トレンド方向を計算
   def self.calculate_trend_direction(values)
-    return 'stable' if values.size < 2
+    return "stable" if values.size < 2
 
     first_half = values.first(values.size / 2).sum / (values.size / 2)
     second_half = values.last(values.size / 2).sum / (values.size / 2)
 
     if second_half > first_half + 0.3
-      'up'
+      "up"
     elsif second_half < first_half - 0.3
-      'down'
+      "down"
     else
-      'stable'
+      "stable"
     end
   end
-end 
+end

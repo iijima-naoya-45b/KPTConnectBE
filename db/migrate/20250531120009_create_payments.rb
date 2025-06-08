@@ -18,7 +18,7 @@ class CreatePayments < ActiveRecord::Migration[7.0]
 
       # 支払い状態
       t.string :status, null: false, limit: 50
-      t.check_constraint "status IN ('succeeded', 'pending', 'failed', 'canceled', 'requires_action')", 
+      t.check_constraint "status IN ('succeeded', 'pending', 'failed', 'canceled', 'requires_action')",
                          name: 'check_payments_status'
 
       # 支払い方法・詳細情報
@@ -38,9 +38,9 @@ class CreatePayments < ActiveRecord::Migration[7.0]
     add_index :payments, :currency
     add_index :payments, :payment_method_type
     add_index :payments, :created_at
-    add_index :payments, [:user_id, :status]
-    add_index :payments, [:user_id, :created_at]
-    add_index :payments, [:subscription_id, :created_at]
-    add_index :payments, [:status, :created_at]
+    add_index :payments, [ :user_id, :status ]
+    add_index :payments, [ :user_id, :created_at ]
+    add_index :payments, [ :subscription_id, :created_at ]
+    add_index :payments, [ :status, :created_at ]
   end
-end 
+end

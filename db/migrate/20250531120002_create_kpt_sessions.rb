@@ -6,7 +6,7 @@ class CreateKptSessions < ActiveRecord::Migration[7.0]
   def change
     # テーブルが既に存在する場合はスキップ
     return if table_exists?(:kpt_sessions)
-    
+
     create_table :kpt_sessions, id: :uuid do |t|
       # ユーザー関連付け（既存usersテーブルのINTEGER IDを参照）
       t.references :user, null: false, foreign_key: true, type: :integer
@@ -18,7 +18,7 @@ class CreateKptSessions < ActiveRecord::Migration[7.0]
 
       # ステータス管理
       t.string :status, default: 'draft', limit: 20
-      t.check_constraint "status IN ('draft', 'in_progress', 'completed', 'archived')", 
+      t.check_constraint "status IN ('draft', 'in_progress', 'completed', 'archived')",
                          name: 'check_kpt_sessions_status'
 
       # 分類・検索機能
@@ -79,4 +79,4 @@ class ChangeKptSessionsStatusToEnum < ActiveRecord::Migration[7.0]
       CHECK (status IN ('draft', 'in_progress', 'completed', 'archived'));
     SQL
   end
-end 
+end

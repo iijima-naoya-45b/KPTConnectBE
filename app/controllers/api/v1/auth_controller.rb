@@ -2,7 +2,7 @@
 
 # 認証APIコントローラー
 class Api::V1::AuthController < ApplicationController
-  before_action :authenticate_user!, only: [:logout]
+  before_action :authenticate_user!, only: [ :logout ]
 
   # ログイン
   def login
@@ -10,4 +10,4 @@ class Api::V1::AuthController < ApplicationController
   end
 
   # ... その他のアクション ...
-end 
+end

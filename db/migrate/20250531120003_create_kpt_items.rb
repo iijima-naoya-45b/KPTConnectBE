@@ -10,17 +10,17 @@ class CreateKptItems < ActiveRecord::Migration[7.0]
 
       # KPT項目の基本情報
       t.string :type, null: false, limit: 10
-      t.check_constraint "type IN ('keep', 'problem', 'try')", 
+      t.check_constraint "type IN ('keep', 'problem', 'try')",
                          name: 'check_kpt_items_type'
       t.text :content, null: false
 
       # 優先度・ステータス管理
       t.string :priority, default: 'medium', limit: 10
-      t.check_constraint "priority IN ('low', 'medium', 'high')", 
+      t.check_constraint "priority IN ('low', 'medium', 'high')",
                          name: 'check_kpt_items_priority'
-      
+
       t.string :status, default: 'open', limit: 20
-      t.check_constraint "status IN ('open', 'in_progress', 'completed', 'cancelled')", 
+      t.check_constraint "status IN ('open', 'in_progress', 'completed', 'cancelled')",
                          name: 'check_kpt_items_status'
 
       # 期日・担当者
@@ -29,11 +29,11 @@ class CreateKptItems < ActiveRecord::Migration[7.0]
 
       # 感情・影響度スコア（1-5段階）
       t.integer :emotion_score
-      t.check_constraint 'emotion_score >= 1 AND emotion_score <= 5', 
+      t.check_constraint 'emotion_score >= 1 AND emotion_score <= 5',
                          name: 'check_kpt_items_emotion_score'
-      
+
       t.integer :impact_score
-      t.check_constraint 'impact_score >= 1 AND impact_score <= 5', 
+      t.check_constraint 'impact_score >= 1 AND impact_score <= 5',
                          name: 'check_kpt_items_impact_score'
 
       # 分類・メモ機能
@@ -57,4 +57,4 @@ class CreateKptItems < ActiveRecord::Migration[7.0]
     add_index :kpt_items, :tags, using: :gin
     add_index :kpt_items, :completed_at
   end
-end 
+end

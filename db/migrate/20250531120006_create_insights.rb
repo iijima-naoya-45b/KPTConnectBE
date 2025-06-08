@@ -11,14 +11,14 @@ class CreateInsights < ActiveRecord::Migration[7.0]
 
       # インサイトの種類
       t.string :insight_type, null: false, limit: 50
-      t.check_constraint "insight_type IN ('summary', 'sentiment', 'trend', 'recommendation', 'pattern')", 
+      t.check_constraint "insight_type IN ('summary', 'sentiment', 'trend', 'recommendation', 'pattern')",
                          name: 'check_insights_type'
 
       # インサイト基本情報
       t.string :title, null: false, limit: 200
       t.jsonb :content, null: false
       t.decimal :confidence_score, precision: 3, scale: 2
-      t.check_constraint 'confidence_score >= 0 AND confidence_score <= 1', 
+      t.check_constraint 'confidence_score >= 0 AND confidence_score <= 1',
                          name: 'check_insights_confidence_score'
 
       # データソース・メタデータ
@@ -39,7 +39,7 @@ class CreateInsights < ActiveRecord::Migration[7.0]
     add_index :insights, :data_source
     add_index :insights, :is_active
     add_index :insights, :created_at
-    add_index :insights, [:user_id, :insight_type]
-    add_index :insights, [:kpt_session_id, :insight_type]
+    add_index :insights, [ :user_id, :insight_type ]
+    add_index :insights, [ :kpt_session_id, :insight_type ]
   end
-end 
+end

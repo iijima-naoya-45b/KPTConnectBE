@@ -14,7 +14,7 @@
 # - GET /api/v1/subscriptions/payments 支払い履歴
 class Api::V1::SubscriptionsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_subscription, only: [:show, :update, :destroy, :cancel]
+  before_action :set_subscription, only: [ :show, :update, :destroy, :cancel ]
 
   # 現在のサブスクリプション情報を取得
   # @route GET /api/v1/subscriptions
@@ -27,12 +27,12 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: 'サブスクリプション情報を取得しました'
+        message: "サブスクリプション情報を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプション情報の取得に失敗しました',
+        error: "サブスクリプション情報の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -51,7 +51,7 @@ class Api::V1::SubscriptionsController < ApplicationController
       if price_id.blank?
         render json: {
           success: false,
-          error: '価格IDを指定してください'
+          error: "価格IDを指定してください"
         }, status: :unprocessable_entity
         return
       end
@@ -64,7 +64,7 @@ class Api::V1::SubscriptionsController < ApplicationController
 
       # Stripeでサブスクリプションを作成
       stripe_subscription = create_stripe_subscription(price_id, payment_method_id)
-      
+
       # データベースに保存
       subscription = current_user.subscriptions.create!(
         stripe_subscription_id: stripe_subscription.id,
@@ -81,18 +81,18 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: 'サブスクリプションを作成しました'
+        message: "サブスクリプションを作成しました"
       }, status: :created
     rescue Stripe::CardError => e
       render json: {
         success: false,
-        error: 'カード決済エラー',
+        error: "カード決済エラー",
         details: e.message
       }, status: :payment_required
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプションの作成に失敗しました',
+        error: "サブスクリプションの作成に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -108,12 +108,12 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: 'サブスクリプション詳細を取得しました'
+        message: "サブスクリプション詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプション詳細の取得に失敗しました',
+        error: "サブスクリプション詳細の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -130,7 +130,7 @@ class Api::V1::SubscriptionsController < ApplicationController
       if new_price_id.blank?
         render json: {
           success: false,
-          error: '新しい価格IDを指定してください'
+          error: "新しい価格IDを指定してください"
         }, status: :unprocessable_entity
         return
       end
@@ -153,12 +153,12 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: 'サブスクリプションを更新しました'
+        message: "サブスクリプションを更新しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプションの更新に失敗しました',
+        error: "サブスクリプションの更新に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -170,7 +170,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   # @response [JSON] キャンセル結果
   def destroy
     begin
-      at_period_end = params[:at_period_end] != 'false'
+      at_period_end = params[:at_period_end] != "false"
 
       # Stripeでサブスクリプションをキャンセル
       stripe_subscription = cancel_stripe_subscription(@subscription.stripe_subscription_id, at_period_end)
@@ -180,7 +180,7 @@ class Api::V1::SubscriptionsController < ApplicationController
         status: stripe_subscription.status,
         cancel_at_period_end: at_period_end
       }
-      
+
       if stripe_subscription.canceled_at
         update_params[:canceled_at] = Time.at(stripe_subscription.canceled_at)
       end
@@ -192,12 +192,12 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: at_period_end ? '期間終了時にキャンセルします' : 'サブスクリプションをキャンセルしました'
+        message: at_period_end ? "期間終了時にキャンセルします" : "サブスクリプションをキャンセルしました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプションのキャンセルに失敗しました',
+        error: "サブスクリプションのキャンセルに失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -214,14 +214,14 @@ class Api::V1::SubscriptionsController < ApplicationController
         success: true,
         data: {
           plans: plans_data,
-          current_plan: current_user.current_subscription&.plan_name || 'Free'
+          current_plan: current_user.current_subscription&.plan_name || "Free"
         },
-        message: '利用可能なプランを取得しました'
+        message: "利用可能なプランを取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'プラン情報の取得に失敗しました',
+        error: "プラン情報の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -238,7 +238,7 @@ class Api::V1::SubscriptionsController < ApplicationController
 
       # ページネーション
       page = params[:page]&.to_i || 1
-      per_page = [params[:per_page]&.to_i || 20, 50].min
+      per_page = [ params[:per_page]&.to_i || 20, 50 ].min
 
       total_count = payments.count
       payments = payments.offset((page - 1) * per_page).limit(per_page)
@@ -258,12 +258,12 @@ class Api::V1::SubscriptionsController < ApplicationController
           },
           summary: calculate_payment_summary(current_user.payments)
         },
-        message: '支払い履歴を取得しました'
+        message: "支払い履歴を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '支払い履歴の取得に失敗しました',
+        error: "支払い履歴の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -274,10 +274,10 @@ class Api::V1::SubscriptionsController < ApplicationController
   # @response [JSON] 再開結果
   def resume
     begin
-      if @subscription.status == 'canceled'
+      if @subscription.status == "canceled"
         render json: {
           success: false,
-          error: 'キャンセル済みのサブスクリプションは再開できません'
+          error: "キャンセル済みのサブスクリプションは再開できません"
         }, status: :unprocessable_entity
         return
       end
@@ -296,12 +296,12 @@ class Api::V1::SubscriptionsController < ApplicationController
       render json: {
         success: true,
         data: subscription_data,
-        message: 'サブスクリプションを再開しました'
+        message: "サブスクリプションを再開しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'サブスクリプションの再開に失敗しました',
+        error: "サブスクリプションの再開に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -315,7 +315,7 @@ class Api::V1::SubscriptionsController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,
-      error: 'サブスクリプションが見つかりません'
+      error: "サブスクリプションが見つかりません"
     }, status: :not_found
   end
 
@@ -367,13 +367,13 @@ class Api::V1::SubscriptionsController < ApplicationController
   # @return [Hash] フリープラン情報
   def get_free_plan_info
     {
-      plan_name: 'Free',
-      status: 'active',
-      status_ja: 'アクティブ',
+      plan_name: "Free",
+      status: "active",
+      status_ja: "アクティブ",
       billing_cycle: nil,
-      features: get_plan_features('Free'),
+      features: get_plan_features("Free"),
       upgrade_available: true,
-      recommended_plan: 'Pro'
+      recommended_plan: "Pro"
     }
   end
 
@@ -382,45 +382,45 @@ class Api::V1::SubscriptionsController < ApplicationController
   def get_available_plans
     [
       {
-        name: 'Free',
-        display_name: 'フリープラン',
+        name: "Free",
+        display_name: "フリープラン",
         price: 0,
-        currency: 'jpy',
+        currency: "jpy",
         billing_cycle: nil,
         stripe_price_id: nil,
-        features: get_plan_features('Free'),
+        features: get_plan_features("Free"),
         recommended: false
       },
       {
-        name: 'Basic',
-        display_name: 'ベーシックプラン',
+        name: "Basic",
+        display_name: "ベーシックプラン",
         price: 980,
-        currency: 'jpy',
-        billing_cycle: 'monthly',
-        stripe_price_id: 'price_basic_monthly',
-        features: get_plan_features('Basic'),
+        currency: "jpy",
+        billing_cycle: "monthly",
+        stripe_price_id: "price_basic_monthly",
+        features: get_plan_features("Basic"),
         recommended: false
       },
       {
-        name: 'Pro',
-        display_name: 'プロプラン',
+        name: "Pro",
+        display_name: "プロプラン",
         price: 1980,
-        currency: 'jpy',
-        billing_cycle: 'monthly',
-        stripe_price_id: 'price_pro_monthly',
-        features: get_plan_features('Pro'),
+        currency: "jpy",
+        billing_cycle: "monthly",
+        stripe_price_id: "price_pro_monthly",
+        features: get_plan_features("Pro"),
         recommended: true
       },
       {
-        name: 'Pro',
-        display_name: 'プロプラン（年間）',
+        name: "Pro",
+        display_name: "プロプラン（年間）",
         price: 19800,
-        currency: 'jpy',
-        billing_cycle: 'yearly',
-        stripe_price_id: 'price_pro_yearly',
-        features: get_plan_features('Pro'),
+        currency: "jpy",
+        billing_cycle: "yearly",
+        stripe_price_id: "price_pro_yearly",
+        features: get_plan_features("Pro"),
         recommended: false,
-        discount: '2ヶ月分お得'
+        discount: "2ヶ月分お得"
       }
     ]
   end
@@ -430,32 +430,32 @@ class Api::V1::SubscriptionsController < ApplicationController
   # @return [Array] 機能リスト
   def get_plan_features(plan_name)
     case plan_name
-    when 'Free'
+    when "Free"
       [
-        '月5セッションまで',
-        '基本的なKPT機能',
-        'コミュニティサポート',
-        '簡易レポート'
+        "月5セッションまで",
+        "基本的なKPT機能",
+        "コミュニティサポート",
+        "簡易レポート"
       ]
-    when 'Basic'
+    when "Basic"
       [
-        '月20セッションまで',
-        '全KPT機能',
-        'メールサポート',
-        '詳細レポート',
-        'データエクスポート',
-        'カスタムタグ'
+        "月20セッションまで",
+        "全KPT機能",
+        "メールサポート",
+        "詳細レポート",
+        "データエクスポート",
+        "カスタムタグ"
       ]
-    when 'Pro'
+    when "Pro"
       [
-        '無制限セッション',
-        '全機能利用可能',
-        '優先サポート',
-        'AI分析・インサイト',
-        '高度なレポート',
-        'チーム機能',
-        'API アクセス',
-        'カスタムダッシュボード'
+        "無制限セッション",
+        "全機能利用可能",
+        "優先サポート",
+        "AI分析・インサイト",
+        "高度なレポート",
+        "チーム機能",
+        "API アクセス",
+        "カスタムダッシュボード"
       ]
     else
       []
@@ -467,11 +467,11 @@ class Api::V1::SubscriptionsController < ApplicationController
   # @return [Hash] 支払いサマリー
   def calculate_payment_summary(payments)
     {
-      total_amount: payments.where(status: 'succeeded').sum(:amount),
+      total_amount: payments.where(status: "succeeded").sum(:amount),
       total_payments: payments.count,
-      successful_payments: payments.where(status: 'succeeded').count,
-      failed_payments: payments.where(status: 'failed').count,
-      last_payment_date: payments.where(status: 'succeeded').maximum(:created_at)
+      successful_payments: payments.where(status: "succeeded").count,
+      failed_payments: payments.where(status: "failed").count,
+      last_payment_date: payments.where(status: "succeeded").maximum(:created_at)
     }
   end
 
@@ -481,7 +481,7 @@ class Api::V1::SubscriptionsController < ApplicationController
     # ここは仮の実装
     OpenStruct.new(
       id: "sub_#{SecureRandom.hex(12)}",
-      status: 'active',
+      status: "active",
       current_period_start: Time.current.to_i,
       current_period_end: 1.month.from_now.to_i
     )
@@ -492,7 +492,7 @@ class Api::V1::SubscriptionsController < ApplicationController
     # 実際の実装では Stripe API を使用
     OpenStruct.new(
       id: subscription_id,
-      status: 'active',
+      status: "active",
       current_period_start: Time.current.to_i,
       current_period_end: 1.month.from_now.to_i
     )
@@ -503,7 +503,7 @@ class Api::V1::SubscriptionsController < ApplicationController
     # 実際の実装では Stripe API を使用
     OpenStruct.new(
       id: subscription_id,
-      status: at_period_end ? 'active' : 'canceled',
+      status: at_period_end ? "active" : "canceled",
       canceled_at: at_period_end ? nil : Time.current.to_i
     )
   end
@@ -513,51 +513,51 @@ class Api::V1::SubscriptionsController < ApplicationController
     # 実際の実装では Stripe API を使用
     OpenStruct.new(
       id: subscription_id,
-      status: 'active'
+      status: "active"
     )
   end
 
   # 既存サブスクリプションをキャンセル
   def cancel_existing_subscription(subscription)
     cancel_stripe_subscription(subscription.stripe_subscription_id, false)
-    subscription.update!(status: 'canceled', canceled_at: Time.current)
+    subscription.update!(status: "canceled", canceled_at: Time.current)
   end
 
   # 価格IDからプラン名を取得
   def get_plan_name_from_price_id(price_id)
     case price_id
-    when 'price_basic_monthly'
-      'Basic'
-    when 'price_pro_monthly', 'price_pro_yearly'
-      'Pro'
+    when "price_basic_monthly"
+      "Basic"
+    when "price_pro_monthly", "price_pro_yearly"
+      "Pro"
     else
-      'Unknown'
+      "Unknown"
     end
   end
 
   # 価格IDから請求サイクルを取得
   def get_billing_cycle_from_price_id(price_id)
-    price_id.include?('yearly') ? 'yearly' : 'monthly'
+    price_id.include?("yearly") ? "yearly" : "monthly"
   end
 
   # 次回支払い日を取得
   def get_next_payment_date(subscription)
-    return nil if subscription.status == 'canceled'
+    return nil if subscription.status == "canceled"
     subscription.current_period_end
   end
 
   # 更新までの日数を計算
   def calculate_days_until_renewal(subscription)
-    return nil if subscription.status == 'canceled'
+    return nil if subscription.status == "canceled"
     (subscription.current_period_end.to_date - Date.current).to_i
   end
 
   # 金額をフォーマット
   def format_amount(amount, currency)
     case currency
-    when 'jpy'
+    when "jpy"
       "¥#{amount.to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
-    when 'usd'
+    when "usd"
       "$#{(amount / 100.0).to_s.reverse.gsub(/(\d{3})(?=\d)/, '\\1,').reverse}"
     else
       "#{amount} #{currency.upcase}"
@@ -567,20 +567,20 @@ class Api::V1::SubscriptionsController < ApplicationController
   # ステータス名の日本語変換
   def subscription_status_ja(status)
     case status
-    when 'active'
-      'アクティブ'
-    when 'canceled'
-      'キャンセル済み'
-    when 'incomplete'
-      '未完了'
-    when 'incomplete_expired'
-      '期限切れ'
-    when 'past_due'
-      '支払い期限超過'
-    when 'trialing'
-      'トライアル中'
-    when 'unpaid'
-      '未払い'
+    when "active"
+      "アクティブ"
+    when "canceled"
+      "キャンセル済み"
+    when "incomplete"
+      "未完了"
+    when "incomplete_expired"
+      "期限切れ"
+    when "past_due"
+      "支払い期限超過"
+    when "trialing"
+      "トライアル中"
+    when "unpaid"
+      "未払い"
     else
       status
     end
@@ -588,10 +588,10 @@ class Api::V1::SubscriptionsController < ApplicationController
 
   def billing_cycle_ja(cycle)
     case cycle
-    when 'monthly'
-      '月額'
-    when 'yearly'
-      '年額'
+    when "monthly"
+      "月額"
+    when "yearly"
+      "年額"
     else
       cycle
     end
@@ -599,18 +599,18 @@ class Api::V1::SubscriptionsController < ApplicationController
 
   def payment_status_ja(status)
     case status
-    when 'succeeded'
-      '成功'
-    when 'pending'
-      '処理中'
-    when 'failed'
-      '失敗'
-    when 'canceled'
-      'キャンセル'
-    when 'requires_action'
-      '認証必要'
+    when "succeeded"
+      "成功"
+    when "pending"
+      "処理中"
+    when "failed"
+      "失敗"
+    when "canceled"
+      "キャンセル"
+    when "requires_action"
+      "認証必要"
     else
       status
     end
   end
-end 
+end

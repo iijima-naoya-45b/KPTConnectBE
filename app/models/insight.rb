@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # インサイトモデル
-# 
+#
 # @description AI分析による振り返りサマリ・メタ情報を管理するモデル
 # KPTセッションに対する分析結果やパターン、推奨事項を保存
-# 
+#
 # @attr [UUID] kpt_session_id KPTセッションID
 # @attr [Integer] user_id ユーザーID
 # @attr [String] insight_type インサイトタイプ (summary, sentiment, trend, recommendation, pattern)
@@ -20,18 +20,18 @@ class Insight < ApplicationRecord
   belongs_to :user
 
   # バリデーション
-  validates :insight_type, presence: true, 
+  validates :insight_type, presence: true,
             inclusion: { in: %w[summary sentiment trend recommendation pattern] }
   validates :title, presence: true, length: { maximum: 200 }
   validates :content, presence: true
-  validates :confidence_score, presence: true, 
+  validates :confidence_score, presence: true,
             numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 1 }
   validates :data_source, presence: true, length: { maximum: 50 }
 
   # スコープ
   scope :active, -> { where(is_active: true) }
   scope :by_type, ->(type) { where(insight_type: type) }
-  scope :high_confidence, -> { where('confidence_score >= ?', 0.8) }
+  scope :high_confidence, -> { where("confidence_score >= ?", 0.8) }
   scope :recent, -> { order(created_at: :desc) }
 
   # インスタンスメソッド
@@ -75,4 +75,4 @@ class Insight < ApplicationRecord
       high_confidence_count: insights.high_confidence.count
     }
   end
-end 
+end
