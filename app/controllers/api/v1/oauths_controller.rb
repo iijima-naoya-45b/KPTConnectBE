@@ -44,8 +44,6 @@ class Api::V1::OauthsController < ApplicationController
       expires: 1.hour.from_now
     }
 
-    Rails.logger.info "Cookie set successfully, redirecting to: #{ENV["FRONTEND_URL"]}"
-
     redirect_to ENV["FRONTEND_URL"]
   end
 
