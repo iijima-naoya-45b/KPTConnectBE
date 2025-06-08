@@ -78,7 +78,6 @@ class Api::V1::KptItemsController < ApplicationController
           message: "アイテムを作成しました"
         }, status: :created
       else
-        Rails.logger.error "KPT項目バリデーションエラー: #{@kpt_item.errors.full_messages}"
         render json: {
           success: false,
           error: "アイテムの作成に失敗しました",
@@ -86,14 +85,11 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT項目作成エラー: #{e.class.name} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
       render_error(error: "アイテムの作成中にエラーが発生しました", status: :internal_server_error)
     end
   end
@@ -207,14 +203,11 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT項目移動エラー: #{e.class.name} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
       render_error(error: "アイテムの移動中にエラーが発生しました", status: :internal_server_error)
     end
   end
@@ -235,7 +228,6 @@ class Api::V1::KptItemsController < ApplicationController
           message: "アイテムをコピーしました"
         }, status: :created
       else
-        Rails.logger.error "KPT項目コピーエラー: #{@kpt_item.errors.full_messages}"
         render json: {
           success: false,
           error: "アイテムのコピーに失敗しました",
@@ -243,14 +235,11 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "セッション未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: "セッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT項目コピーエラー: #{e.class.name} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
       render_error(error: "アイテムのコピー中にエラーが発生しました", status: :internal_server_error)
     end
   end
@@ -283,14 +272,11 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "作業ログ未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: "作業ログが見つかりません"
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT項目作業ログリンクエラー: #{e.class.name} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
       render_error(error: "アイテムに作業ログのリンク中にエラーが発生しました", status: :internal_server_error)
     end
   end
@@ -322,14 +308,11 @@ class Api::V1::KptItemsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound => e
-      Rails.logger.error "作業ログ未発見エラー: #{e.message}"
       render json: {
         success: false,
         error: "作業ログが見つかりません"
       }, status: :not_found
     rescue StandardError => e
-      Rails.logger.error "KPT項目作業ログアンリンクエラー: #{e.class.name} - #{e.message}"
-      Rails.logger.error e.backtrace.join("\n")
       render_error(error: "アイテムから作業ログのアンリンク中にエラーが発生しました", status: :internal_server_error)
     end
   end

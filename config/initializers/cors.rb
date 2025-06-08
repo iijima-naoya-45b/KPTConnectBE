@@ -7,12 +7,11 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    # フロントエンドのオリジンを指定
     origins "http://localhost:3000", "https://www.kpt-connect.biz"
     resource "*",
       headers: :any,
       expose: [ "Authorization" ],
       methods: [ :get, :post, :put, :patch, :delete, :options, :head ],
-      credentials: true  # クッキーや認証情報の送信を許可
+      credentials: true
   end
 end
