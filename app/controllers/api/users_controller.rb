@@ -3,7 +3,6 @@ require "json"
 require "jwt"
 
 class Api::UsersController < ApplicationController
-
   def create
     # Google公開鍵を取得
     public_key = fetch_google_public_key

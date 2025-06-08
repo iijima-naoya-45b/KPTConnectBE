@@ -34,7 +34,7 @@ class ApplicationController < ActionController::API
     begin
       payload = JSON.parse(jwt)
       user_id = payload["user_id"]
-      
+
       if user_id.present?
         @current_user = User.active.find_by(id: user_id)
       end
@@ -55,11 +55,11 @@ class ApplicationController < ActionController::API
   # @raise [AuthenticationError] 認証されていない場合
   def authenticate_user!
     unless current_user
-      raise AuthenticationError, 'ログインが必要です'
+      raise AuthenticationError, "ログインが必要です"
     end
 
     unless current_user.is_active?
-      raise AuthenticationError, 'アカウントが無効です'
+      raise AuthenticationError, "アカウントが無効です"
     end
 
     # 最終ログイン時刻を更新
@@ -70,28 +70,28 @@ class ApplicationController < ActionController::API
   def require_login
     authenticate_user!
   rescue AuthenticationError
-    render json: { 
+    render json: {
       success: false,
-      error: 'Unauthorized',
-      message: 'ログインが必要です'
+      error: "Unauthorized",
+      message: "ログインが必要です"
     }, status: :unauthorized
   end
 
   # プロプラン権限をチェック
   def require_pro_plan!
     authenticate_user!
-    
+
     unless current_user.pro_plan?
-      raise AuthorizationError, 'プロプランの契約が必要です'
+      raise AuthorizationError, "プロプランの契約が必要です"
     end
   end
 
   # 管理者権限をチェック
   def require_admin!
     authenticate_user!
-    
+
     unless current_user.admin?
-      raise AuthorizationError, '管理者権限が必要です'
+      raise AuthorizationError, "管理者権限が必要です"
     end
   end
 
@@ -99,7 +99,7 @@ class ApplicationController < ActionController::API
   # @param [Hash] data レスポンスデータ
   # @param [String] message メッセージ
   # @param [Symbol] status HTTPステータス
-  def render_success(data: nil, message: '正常に処理されました', status: :ok)
+  def render_success(data: nil, message: "正常に処理されました", status: :ok)
     response_data = {
       success: true,
       message: message
@@ -113,7 +113,7 @@ class ApplicationController < ActionController::API
   # @param [String] error エラーメッセージ
   # @param [Array, String] details 詳細エラー
   # @param [Symbol] status HTTPステータス
-  def render_error(error: 'エラーが発生しました', details: nil, status: :internal_server_error)
+  def render_error(error: "エラーが発生しました", details: nil, status: :internal_server_error)
     response_data = {
       success: false,
       error: error
@@ -140,7 +140,7 @@ class ApplicationController < ActionController::API
   def handle_authentication_error(exception)
     render json: {
       success: false,
-      error: 'Unauthorized',
+      error: "Unauthorized",
       message: exception.message
     }, status: :unauthorized
   end
@@ -149,7 +149,7 @@ class ApplicationController < ActionController::API
   def handle_authorization_error(exception)
     render json: {
       success: false,
-      error: 'Forbidden',
+      error: "Forbidden",
       message: exception.message
     }, status: :forbidden
   end
@@ -158,8 +158,8 @@ class ApplicationController < ActionController::API
   def handle_not_found(exception)
     render json: {
       success: false,
-      error: 'Not Found',
-      message: 'リソースが見つかりません'
+      error: "Not Found",
+      message: "リソースが見つかりません"
     }, status: :not_found
   end
 
@@ -167,8 +167,8 @@ class ApplicationController < ActionController::API
   def handle_parameter_missing(exception)
     render json: {
       success: false,
-      error: 'Bad Request',
-      message: '必須パラメーターが不足しています',
+      error: "Bad Request",
+      message: "必須パラメーターが不足しています",
       details: exception.message
     }, status: :bad_request
   end

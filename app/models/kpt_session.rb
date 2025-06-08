@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # KPTセッションモデル
-# 
+#
 # @description KPTセッションの管理を行うモデル
 # セッション情報、ステータス管理、関連するKPTアイテムとの関連を定義
-# 
+#
 # @attr [Integer] user_id ユーザーID
 # @attr [String] title セッションタイトル
 # @attr [String] description セッション説明
@@ -31,10 +31,10 @@ class KptSession < ApplicationRecord
 
   # 日本語⇔英語変換ヘルパー
   STATUS_LABELS = {
-    'not_started' => '未着手',
-    'in_progress' => '着手中',
-    'completed'   => '完了',
-    'pending'     => '保留'
+    "not_started" => "未着手",
+    "in_progress" => "着手中",
+    "completed"   => "完了",
+    "pending"     => "保留"
   }.freeze
 
   def status_ja
@@ -46,13 +46,13 @@ class KptSession < ApplicationRecord
   end
 
   # スコープ
-  scope :active, -> { where.not(status: 'pending') }
-  scope :completed, -> { where(status: 'completed') }
+  scope :active, -> { where.not(status: "pending") }
+  scope :completed, -> { where(status: "completed") }
   scope :recent, -> { order(session_date: :desc, created_at: :desc) }
   scope :templates, -> { where(is_template: true) }
   scope :not_templates, -> { where(is_template: false) }
   scope :by_date_range, ->(start_date, end_date) { where(session_date: start_date..end_date) }
-  scope :with_tag, ->(tag) { where('? = ANY(tags)', tag) }
+  scope :with_tag, ->(tag) { where("? = ANY(tags)", tag) }
   scope :by_status, ->(status) { where(status: status) }
 
   # コールバック
@@ -64,22 +64,22 @@ class KptSession < ApplicationRecord
   # セッションが完了しているかチェック
   # @return [Boolean] 完了状態
   def completed?
-    status == 'completed'
+    status == "completed"
   end
 
   # セッションがアクティブかチェック
   # @return [Boolean] アクティブ状態
   def active?
-    status != 'archived'
+    status != "archived"
   end
 
   # セッション内のKPTアイテム数統計を取得
   # @return [Hash] 各タイプのアイテム数
   def kpt_items_count
     {
-      keep: kpt_items.where(type: 'keep').count,
-      problem: kpt_items.where(type: 'problem').count,
-      try: kpt_items.where(type: 'try').count,
+      keep: kpt_items.where(type: "keep").count,
+      problem: kpt_items.where(type: "problem").count,
+      try: kpt_items.where(type: "try").count,
       total: kpt_items.count
     }
   end
@@ -88,8 +88,8 @@ class KptSession < ApplicationRecord
   # @return [Float] 進捗率 (0.0-1.0)
   def progress_rate
     return 0.0 if kpt_items.count.zero?
-    
-    completed_items = kpt_items.where(status: 'completed').count
+
+    completed_items = kpt_items.where(status: "completed").count
     completed_items.to_f / kpt_items.count
   end
 
@@ -98,7 +98,7 @@ class KptSession < ApplicationRecord
   def average_emotion_score
     scores = kpt_items.where.not(emotion_score: nil).pluck(:emotion_score)
     return nil if scores.empty?
-    
+
     scores.sum.to_f / scores.size
   end
 
@@ -107,7 +107,7 @@ class KptSession < ApplicationRecord
   def average_impact_score
     scores = kpt_items.where.not(impact_score: nil).pluck(:impact_score)
     return nil if scores.empty?
-    
+
     scores.sum.to_f / scores.size
   end
 
@@ -122,7 +122,7 @@ class KptSession < ApplicationRecord
       tags: tags,
       is_template: true,
       template_name: template_name,
-      status: 'draft'
+      status: "draft"
     )
 
     if template.save
@@ -156,7 +156,7 @@ class KptSession < ApplicationRecord
       month_sessions = sessions.by_date_range(month_start, month_end)
 
       {
-        month: month_start.strftime('%Y-%m'),
+        month: month_start.strftime("%Y-%m"),
         sessions_count: month_sessions.count,
         completed_count: month_sessions.completed.count,
         items_count: month_sessions.joins(:kpt_items).count
@@ -187,15 +187,15 @@ class KptSession < ApplicationRecord
 
   # 完了日時を更新
   def update_completed_at
-    if status == 'completed' && completed_at.nil?
+    if status == "completed" && completed_at.nil?
       update_column(:completed_at, Time.current)
-    elsif status != 'completed' && completed_at.present?
+    elsif status != "completed" && completed_at.present?
       update_column(:completed_at, nil)
     end
   end
 
   # 完了ステータスが変更されたかチェック
   def completed_status_changed?
-    saved_change_to_status? && (status == 'completed' || status_before_last_save == 'completed')
+    saved_change_to_status? && (status == "completed" || status_before_last_save == "completed")
   end
-end 
+end

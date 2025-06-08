@@ -8,13 +8,13 @@ class AddDurationToWorkLogs < ActiveRecord::Migration[7.0]
     reversible do |dir|
       dir.up do
         execute <<-SQL
-          ALTER TABLE work_logs 
-          ADD COLUMN duration_minutes INTEGER 
+          ALTER TABLE work_logs#{' '}
+          ADD COLUMN duration_minutes INTEGER#{' '}
           GENERATED ALWAYS AS (
-            CASE 
-              WHEN ended_at IS NOT NULL THEN 
+            CASE#{' '}
+              WHEN ended_at IS NOT NULL THEN#{' '}
                 EXTRACT(EPOCH FROM (ended_at - started_at))/60
-              ELSE NULL 
+              ELSE NULL#{' '}
             END
           ) STORED;
         SQL

@@ -20,7 +20,7 @@ class FeedbackType < ApplicationRecord
   validates :name, presence: true, length: { maximum: 100 }
   validates :key, presence: true, uniqueness: true, length: { maximum: 50 }
   validates :display_order, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validates :color_code, format: { with: /\A#[0-9a-fA-F]{6}\z/, message: 'は#FFFFFFの形式で入力してください' }, allow_blank: true
+  validates :color_code, format: { with: /\A#[0-9a-fA-F]{6}\z/, message: "は#FFFFFFの形式で入力してください" }, allow_blank: true
   validates :icon_name, length: { maximum: 50 }, allow_blank: true
 
   # スコープ
@@ -48,8 +48,8 @@ class FeedbackType < ApplicationRecord
   def self.statistics
     active.includes(:feedbacks).map do |type|
       feedbacks_count = type.feedbacks.count
-      recent_count = type.feedbacks.where('created_at >= ?', 1.month.ago).count
-      
+      recent_count = type.feedbacks.where("created_at >= ?", 1.month.ago).count
+
       {
         id: type.id,
         name: type.name,
@@ -85,7 +85,7 @@ class FeedbackType < ApplicationRecord
   # この種別の未読フィードバック数を取得
   # @return [Integer] 未読フィードバック数
   def unread_feedbacks_count
-    feedbacks.where(status: 'unread').count
+    feedbacks.where(status: "unread").count
   end
 
   # この種別の最新フィードバックを取得
@@ -96,4 +96,4 @@ class FeedbackType < ApplicationRecord
              .order(created_at: :desc)
              .limit(limit)
   end
-end 
+end

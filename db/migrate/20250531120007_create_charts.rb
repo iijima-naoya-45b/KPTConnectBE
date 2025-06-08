@@ -14,7 +14,7 @@ class CreateCharts < ActiveRecord::Migration[7.0]
 
       # チャート種類
       t.string :chart_type, null: false, limit: 50
-      t.check_constraint "chart_type IN ('line', 'bar', 'pie', 'area', 'scatter', 'heatmap', 'treemap')", 
+      t.check_constraint "chart_type IN ('line', 'bar', 'pie', 'area', 'scatter', 'heatmap', 'treemap')",
                          name: 'check_charts_type'
 
       # チャート設定（JSON形式）
@@ -36,8 +36,8 @@ class CreateCharts < ActiveRecord::Migration[7.0]
     add_index :charts, :is_public
     add_index :charts, :display_order
     add_index :charts, :created_at
-    add_index :charts, [:user_id, :chart_type]
-    add_index :charts, [:user_id, :is_favorite]
-    add_index :charts, [:user_id, :display_order]
+    add_index :charts, [ :user_id, :chart_type ]
+    add_index :charts, [ :user_id, :is_favorite ]
+    add_index :charts, [ :user_id, :display_order ]
   end
-end 
+end

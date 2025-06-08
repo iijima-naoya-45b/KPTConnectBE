@@ -11,7 +11,7 @@ class Api::V1::DashboardController < ApplicationController
         user: {
           display_name: current_user.display_name,
           avatar_url: current_user.avatar_url,
-          member_since: current_user.created_at.strftime('%Y年%m月'),
+          member_since: current_user.created_at.strftime("%Y年%m月"),
           timezone: current_user.timezone,
           pro_plan: current_user.pro_plan?
         },
@@ -25,20 +25,20 @@ class Api::V1::DashboardController < ApplicationController
         },
         recent_activities: current_user.recent_kpt_activity(5).map { |activity| format_activity(activity) },
         navigation: {
-          sessions_url: '/api/v1/kpt_sessions',
-          items_url: '/api/v1/kpt_items',
-          stats_url: '/api/v1/dashboard/stats',
-          summary_url: '/api/v1/dashboard/summary'
+          sessions_url: "/api/v1/kpt_sessions",
+          items_url: "/api/v1/kpt_items",
+          stats_url: "/api/v1/dashboard/stats",
+          summary_url: "/api/v1/dashboard/summary"
         }
       }
 
       render json: {
         success: true,
         data: dashboard_data,
-        message: 'ダッシュボード情報を取得しました'
+        message: "ダッシュボード情報を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'ダッシュボード情報の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "ダッシュボード情報の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -50,30 +50,30 @@ class Api::V1::DashboardController < ApplicationController
       render json: {
         success: true,
         data: summary_data,
-        message: 'ダッシュボードサマリーを取得しました'
+        message: "ダッシュボードサマリーを取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'サマリーデータの取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "サマリーデータの取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # 統計データを取得
   def stats
     begin
-      period = params[:period] || 'month'
-      
+      period = params[:period] || "month"
+
       stats_data = case period
-                   when 'week'
+      when "week"
                      get_weekly_stats
-                   when 'month'
+      when "month"
                      get_monthly_stats
-                   when 'quarter'
+      when "quarter"
                      get_quarterly_stats
-                   when 'year'
+      when "year"
                      get_yearly_stats
-                   else
+      else
                      get_monthly_stats
-                   end
+      end
 
       render json: {
         success: true,
@@ -82,18 +82,18 @@ class Api::V1::DashboardController < ApplicationController
         message: "#{period}の統計データを取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '統計データの取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "統計データの取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # 最近のアクティビティを取得
   def activity
     begin
-      limit = [params[:limit].to_i, 50].min
+      limit = [ params[:limit].to_i, 50 ].min
       limit = 20 if limit <= 0
 
       activities = current_user.recent_kpt_activity(limit)
-      
+
       # アクティビティデータを整形
       formatted_activities = activities.map do |activity|
         format_activity(activity)
@@ -105,10 +105,10 @@ class Api::V1::DashboardController < ApplicationController
           activities: formatted_activities,
           total_count: formatted_activities.size
         },
-        message: '最近のアクティビティを取得しました'
+        message: "最近のアクティビティを取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: 'アクティビティデータの取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "アクティビティデータの取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -116,7 +116,7 @@ class Api::V1::DashboardController < ApplicationController
   def overview
     begin
       overview_data = current_user.kpt_overview_stats
-      
+
       # 追加のメトリクスを計算
       additional_metrics = calculate_additional_metrics
 
@@ -126,10 +126,10 @@ class Api::V1::DashboardController < ApplicationController
           **overview_data,
           metrics: additional_metrics
         },
-        message: 'KPT概要統計を取得しました'
+        message: "KPT概要統計を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '概要統計の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "概要統計の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -137,7 +137,7 @@ class Api::V1::DashboardController < ApplicationController
   def trends
     begin
       days = params[:days]&.to_i || 30
-      days = [days, 365].min # 最大1年
+      days = [ days, 365 ].min # 最大1年
       days = 7 if days < 7    # 最小1週間
 
       trends_data = {
@@ -154,7 +154,7 @@ class Api::V1::DashboardController < ApplicationController
         message: "#{days}日間の傾向分析を取得しました"
       }, status: :ok
     rescue StandardError => e
-      render_error(error: '傾向分析の取得中にエラーが発生しました', status: :internal_server_error)
+      render_error(error: "傾向分析の取得中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
@@ -164,7 +164,7 @@ class Api::V1::DashboardController < ApplicationController
   def get_weekly_stats
     start_date = 1.week.ago.beginning_of_week
     end_date = Date.current.end_of_week
-    
+
     sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
     items = current_user.kpt_items.joins(:kpt_session)
                         .where(kpt_sessions: { session_date: start_date..end_date })
@@ -187,7 +187,7 @@ class Api::V1::DashboardController < ApplicationController
     current_user.monthly_kpt_stats.merge({
       period_start: Date.current.beginning_of_month,
       period_end: Date.current.end_of_month,
-      comparison: get_period_comparison('month')
+      comparison: get_period_comparison("month")
     })
   end
 
@@ -195,7 +195,7 @@ class Api::V1::DashboardController < ApplicationController
   def get_quarterly_stats
     start_date = Date.current.beginning_of_quarter
     end_date = Date.current.end_of_quarter
-    
+
     sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
     items = current_user.kpt_items.joins(:kpt_session)
                         .where(kpt_sessions: { session_date: start_date..end_date })
@@ -217,7 +217,7 @@ class Api::V1::DashboardController < ApplicationController
   def get_yearly_stats
     start_date = Date.current.beginning_of_year
     end_date = Date.current.end_of_year
-    
+
     sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
     items = current_user.kpt_items.joins(:kpt_session)
                         .where(kpt_sessions: { session_date: start_date..end_date })
@@ -252,12 +252,12 @@ class Api::V1::DashboardController < ApplicationController
   # 期間比較データを取得
   def get_period_comparison(period)
     case period
-    when 'month'
+    when "month"
       current_stats = current_user.monthly_kpt_stats
       previous_month = 1.month.ago
       previous_sessions = current_user.kpt_sessions
                                      .by_date_range(previous_month.beginning_of_month, previous_month.end_of_month)
-      
+
       {
         sessions_change: calculate_change(current_stats[:sessions_count], previous_sessions.count),
         completion_change: calculate_change(current_stats[:completed_sessions], previous_sessions.completed.count)
@@ -287,21 +287,21 @@ class Api::V1::DashboardController < ApplicationController
   def get_monthly_breakdown(start_date, end_date)
     current_month = start_date.beginning_of_month
     end_month = end_date.end_of_month
-    
+
     breakdown = []
     while current_month <= end_month
       month_sessions = current_user.kpt_sessions
                                   .by_date_range(current_month, current_month.end_of_month)
-      
+
       breakdown << {
-        month: current_month.strftime('%Y-%m'),
+        month: current_month.strftime("%Y-%m"),
         sessions_count: month_sessions.count,
         completed_sessions: month_sessions.completed.count
       }
-      
+
       current_month = current_month.next_month.beginning_of_month
     end
-    
+
     breakdown
   end
 
@@ -309,20 +309,20 @@ class Api::V1::DashboardController < ApplicationController
   def get_quarterly_breakdown(start_date, end_date)
     quarters = []
     current_quarter = start_date.beginning_of_quarter
-    
+
     while current_quarter <= end_date
       quarter_sessions = current_user.kpt_sessions
                                     .by_date_range(current_quarter, current_quarter.end_of_quarter)
-      
+
       quarters << {
         quarter: "#{current_quarter.year}Q#{(current_quarter.month - 1) / 3 + 1}",
         sessions_count: quarter_sessions.count,
         completed_sessions: quarter_sessions.completed.count
       }
-      
+
       current_quarter = (current_quarter + 3.months).beginning_of_quarter
     end
-    
+
     quarters
   end
 
@@ -330,7 +330,7 @@ class Api::V1::DashboardController < ApplicationController
   def calculate_completion_rate(sessions)
     total = sessions.count
     return 0.0 if total.zero?
-    
+
     completed = sessions.completed.count
     (completed.to_f / total * 100).round(2)
   end
@@ -338,16 +338,16 @@ class Api::V1::DashboardController < ApplicationController
   # 変化率を計算
   def calculate_change(current, previous)
     return 0.0 if previous.zero?
-    
+
     ((current - previous).to_f / previous * 100).round(2)
   end
 
   # アクティビティデータを整形
   def format_activity(activity)
     object = activity[:object]
-    
+
     case activity[:type]
-    when 'session'
+    when "session"
       {
         id: object.id,
         type: activity[:type],
@@ -358,7 +358,7 @@ class Api::V1::DashboardController < ApplicationController
         items_count: object.kpt_items_count[:total],
         timestamp: activity[:timestamp]
       }
-    when 'item'
+    when "item"
       {
         id: object.id,
         type: activity[:type],
@@ -383,7 +383,7 @@ class Api::V1::DashboardController < ApplicationController
 
   # 生産性スコアを計算
   def calculate_productivity_score
-    sessions = current_user.kpt_sessions.where('created_at >= ?', 30.days.ago)
+    sessions = current_user.kpt_sessions.where("created_at >= ?", 30.days.ago)
     return 0.0 if sessions.count.zero?
 
     completion_rate = sessions.completed.count.to_f / sessions.count
@@ -391,39 +391,39 @@ class Api::V1::DashboardController < ApplicationController
                                         .where(kpt_sessions: { id: sessions.ids })
                                         .count.to_f / sessions.count
 
-    score = (completion_rate * 60 + [avg_items_per_session * 8, 40].min)
-    [score, 100].min.round(2)
+    score = (completion_rate * 60 + [ avg_items_per_session * 8, 40 ].min)
+    [ score, 100 ].min.round(2)
   end
 
   # エンゲージメントレベルを計算
   def calculate_engagement_level
-    recent_sessions = current_user.kpt_sessions.where('created_at >= ?', 14.days.ago).count
-    
+    recent_sessions = current_user.kpt_sessions.where("created_at >= ?", 14.days.ago).count
+
     case recent_sessions
     when 0..1
-      'low'
+      "low"
     when 2..5
-      'medium'
+      "medium"
     else
-      'high'
+      "high"
     end
   end
 
   # 改善トレンドを計算
   def calculate_improvement_trend
     recent_completion_rate = current_user.kpt_items
-                                        .where('completed_at >= ?', 14.days.ago)
+                                        .where("completed_at >= ?", 14.days.ago)
                                         .completed.count.to_f
     previous_completion_rate = current_user.kpt_items
                                           .where(completed_at: 28.days.ago..14.days.ago)
                                           .completed.count.to_f
 
     if recent_completion_rate > previous_completion_rate * 1.2
-      'improving'
+      "improving"
     elsif recent_completion_rate < previous_completion_rate * 0.8
-      'declining'
+      "declining"
     else
-      'stable'
+      "stable"
     end
   end
 
@@ -433,4 +433,4 @@ class Api::V1::DashboardController < ApplicationController
       error: error
     }, status: status
   end
-end 
+end

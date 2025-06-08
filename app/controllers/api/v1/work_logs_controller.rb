@@ -3,7 +3,7 @@
 # 作業ログAPIコントローラー
 class Api::V1::WorkLogsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_work_log, only: [:show, :update, :destroy, :complete, :link_kpt, :unlink_kpt]
+  before_action :set_work_log, only: [ :show, :update, :destroy, :complete, :link_kpt, :unlink_kpt ]
 
   # 作業ログ一覧を取得
   def index
@@ -14,13 +14,13 @@ class Api::V1::WorkLogsController < ApplicationController
       work_logs = work_logs.where(category: params[:category]) if params[:category].present?
       work_logs = work_logs.where(project_name: params[:project_name]) if params[:project_name].present?
       work_logs = work_logs.where(status: params[:status]) if params[:status].present?
-      work_logs = work_logs.where('started_at >= ?', params[:date_from]) if params[:date_from].present?
-      work_logs = work_logs.where('started_at <= ?', params[:date_to]) if params[:date_to].present?
-      work_logs = work_logs.where('? = ANY(tags)', params[:tag]) if params[:tag].present?
+      work_logs = work_logs.where("started_at >= ?", params[:date_from]) if params[:date_from].present?
+      work_logs = work_logs.where("started_at <= ?", params[:date_to]) if params[:date_to].present?
+      work_logs = work_logs.where("? = ANY(tags)", params[:tag]) if params[:tag].present?
 
       # ページネーション
       page = params[:page]&.to_i || 1
-      per_page = [params[:per_page]&.to_i || 20, 100].min
+      per_page = [ params[:per_page]&.to_i || 20, 100 ].min
 
       total_count = work_logs.count
       work_logs = work_logs.offset((page - 1) * per_page).limit(per_page)
@@ -40,12 +40,12 @@ class Api::V1::WorkLogsController < ApplicationController
           },
           summary: calculate_period_summary(work_logs)
         },
-        message: '作業ログ一覧を取得しました'
+        message: "作業ログ一覧を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログ一覧の取得に失敗しました',
+        error: "作業ログ一覧の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -59,12 +59,12 @@ class Api::V1::WorkLogsController < ApplicationController
       render json: {
         success: true,
         data: work_log_data,
-        message: '作業ログ詳細を取得しました'
+        message: "作業ログ詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログ詳細の取得に失敗しました',
+        error: "作業ログ詳細の取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -81,19 +81,19 @@ class Api::V1::WorkLogsController < ApplicationController
         render json: {
           success: true,
           data: work_log_data,
-          message: '作業ログを作成しました'
+          message: "作業ログを作成しました"
         }, status: :created
       else
         render json: {
           success: false,
-          error: '作業ログの作成に失敗しました',
+          error: "作業ログの作成に失敗しました",
           details: @work_log.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログの作成中にエラーが発生しました',
+        error: "作業ログの作成中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -108,19 +108,19 @@ class Api::V1::WorkLogsController < ApplicationController
         render json: {
           success: true,
           data: work_log_data,
-          message: '作業ログを更新しました'
+          message: "作業ログを更新しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '作業ログの更新に失敗しました',
+          error: "作業ログの更新に失敗しました",
           details: @work_log.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログの更新中にエラーが発生しました',
+        error: "作業ログの更新中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -132,19 +132,19 @@ class Api::V1::WorkLogsController < ApplicationController
       if @work_log.destroy
         render json: {
           success: true,
-          message: '作業ログを削除しました'
+          message: "作業ログを削除しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '作業ログの削除に失敗しました',
+          error: "作業ログの削除に失敗しました",
           details: @work_log.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログの削除中にエラーが発生しました',
+        error: "作業ログの削除中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -155,25 +155,25 @@ class Api::V1::WorkLogsController < ApplicationController
     begin
       ended_at = params[:ended_at]&.to_datetime || Time.current
 
-      if @work_log.update(status: 'completed', ended_at: ended_at)
+      if @work_log.update(status: "completed", ended_at: ended_at)
         work_log_data = format_work_log_detail(@work_log)
 
         render json: {
           success: true,
           data: work_log_data,
-          message: '作業ログを完了しました'
+          message: "作業ログを完了しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '作業ログの完了に失敗しました',
+          error: "作業ログの完了に失敗しました",
           details: @work_log.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
       render json: {
         success: false,
-        error: '作業ログ完了処理中にエラーが発生しました',
+        error: "作業ログ完了処理中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -199,24 +199,24 @@ class Api::V1::WorkLogsController < ApplicationController
             link: format_kpt_link(link),
             work_log: format_work_log_detail(@work_log)
           },
-          message: 'KPTセッションと連携しました'
+          message: "KPTセッションと連携しました"
         }, status: :created
       else
         render json: {
           success: false,
-          error: 'KPTセッションとの連携に失敗しました',
+          error: "KPTセッションとの連携に失敗しました",
           details: link.errors.full_messages
         }, status: :unprocessable_entity
       end
     rescue ActiveRecord::RecordNotFound
       render json: {
         success: false,
-        error: 'KPTセッションが見つかりません'
+        error: "KPTセッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'KPTセッション連携中にエラーが発生しました',
+        error: "KPTセッション連携中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -231,23 +231,23 @@ class Api::V1::WorkLogsController < ApplicationController
       if link&.destroy
         render json: {
           success: true,
-          message: 'KPTセッションとの連携を解除しました'
+          message: "KPTセッションとの連携を解除しました"
         }, status: :ok
       else
         render json: {
           success: false,
-          error: '連携情報が見つかりません'
+          error: "連携情報が見つかりません"
         }, status: :not_found
       end
     rescue ActiveRecord::RecordNotFound
       render json: {
         success: false,
-        error: 'KPTセッションが見つかりません'
+        error: "KPTセッションが見つかりません"
       }, status: :not_found
     rescue StandardError => e
       render json: {
         success: false,
-        error: 'KPTセッション連携解除中にエラーが発生しました',
+        error: "KPTセッション連携解除中にエラーが発生しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -268,7 +268,7 @@ class Api::V1::WorkLogsController < ApplicationController
         },
         summary: {
           total_logs: work_logs.count,
-          completed_logs: work_logs.where(status: 'completed').count,
+          completed_logs: work_logs.where(status: "completed").count,
           total_duration_minutes: work_logs.sum(:duration_minutes),
           billable_duration_minutes: work_logs.where(is_billable: true).sum(:duration_minutes)
         },
@@ -288,12 +288,12 @@ class Api::V1::WorkLogsController < ApplicationController
       render json: {
         success: true,
         data: stats_data,
-        message: '作業ログ統計を取得しました'
+        message: "作業ログ統計を取得しました"
       }, status: :ok
     rescue StandardError => e
       render json: {
         success: false,
-        error: '統計データの取得に失敗しました',
+        error: "統計データの取得に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -303,9 +303,9 @@ class Api::V1::WorkLogsController < ApplicationController
   def productivity
     begin
       days = params[:days]&.to_i || 30
-      days = [days, 365].min
+      days = [ days, 365 ].min
 
-      work_logs = current_user.work_logs.where('started_at >= ?', days.days.ago)
+      work_logs = current_user.work_logs.where("started_at >= ?", days.days.ago)
 
       productivity_data = {
         productivity_trends: calculate_productivity_trends(work_logs, days),
@@ -323,7 +323,7 @@ class Api::V1::WorkLogsController < ApplicationController
     rescue StandardError => e
       render json: {
         success: false,
-        error: '生産性分析に失敗しました',
+        error: "生産性分析に失敗しました",
         details: e.message
       }, status: :internal_server_error
     end
@@ -337,7 +337,7 @@ class Api::V1::WorkLogsController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render json: {
       success: false,
-      error: '作業ログが見つかりません'
+      error: "作業ログが見つかりません"
     }, status: :not_found
   end
 
@@ -447,7 +447,7 @@ class Api::V1::WorkLogsController < ApplicationController
   def generate_daily_trends(work_logs, start_date, end_date)
     (start_date..end_date).map do |date|
       day_logs = work_logs.where(started_at: date.beginning_of_day..date.end_of_day)
-      
+
       {
         date: date,
         logs_count: day_logs.count,
@@ -462,7 +462,7 @@ class Api::V1::WorkLogsController < ApplicationController
   # @param [Integer, nil] minutes 分数
   # @return [String] 整形された時間文字列
   def format_duration(minutes)
-    return '0分' if minutes.nil? || minutes.zero?
+    return "0分" if minutes.nil? || minutes.zero?
 
     hours = minutes / 60
     mins = minutes % 60
@@ -482,7 +482,7 @@ class Api::V1::WorkLogsController < ApplicationController
       week_start = (i * 7).days.ago.beginning_of_day
       week_end = ((i * 7) - 6).days.ago.end_of_day
       week_logs = work_logs.where(started_at: week_end..week_start)
-      
+
       {
         week: "#{week_end.strftime('%m/%d')}-#{week_start.strftime('%m/%d')}",
         total_duration: week_logs.sum(:duration_minutes) || 0,
@@ -503,30 +503,30 @@ class Api::V1::WorkLogsController < ApplicationController
 
   # 効率性メトリクスを計算
   def calculate_efficiency_metrics(work_logs)
-    completed_logs = work_logs.where(status: 'completed')
-    
+    completed_logs = work_logs.where(status: "completed")
+
     {
       completion_rate: work_logs.count > 0 ? (completed_logs.count.to_f / work_logs.count * 100).round(2) : 0,
       average_session_length: completed_logs.count > 0 ? (completed_logs.sum(:duration_minutes) / completed_logs.count).round : 0,
-      productive_hours_per_day: work_logs.where.not(productivity_score: nil).where('productivity_score >= 4').sum(:duration_minutes) / 60.0 / 30
+      productive_hours_per_day: work_logs.where.not(productivity_score: nil).where("productivity_score >= 4").sum(:duration_minutes) / 60.0 / 30
     }
   end
 
   # 生産性向上の推奨事項を生成
   def generate_productivity_recommendations(work_logs)
     recommendations = []
-    
+
     avg_productivity = work_logs.where.not(productivity_score: nil).average(:productivity_score)
     if avg_productivity && avg_productivity < 3.0
-      recommendations << '生産性スコアが低めです。作業環境や集中方法を見直してみてください'
+      recommendations << "生産性スコアが低めです。作業環境や集中方法を見直してみてください"
     end
-    
-    long_sessions = work_logs.where('duration_minutes > 240').count
+
+    long_sessions = work_logs.where("duration_minutes > 240").count
     if long_sessions > work_logs.count * 0.3
-      recommendations << '長時間の作業セッションが多いです。適度な休憩を取ることをお勧めします'
+      recommendations << "長時間の作業セッションが多いです。適度な休憩を取ることをお勧めします"
     end
-    
-    recommendations << '定期的な作業ログの記録を継続してください'
+
+    recommendations << "定期的な作業ログの記録を継続してください"
     recommendations
   end
-end 
+end

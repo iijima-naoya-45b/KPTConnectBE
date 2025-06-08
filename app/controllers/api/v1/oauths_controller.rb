@@ -9,7 +9,7 @@ class Api::V1::OauthsController < ApplicationController
 
   def callback
     provider = auth_params[:provider]
-    
+
     if (user = login_from(provider))
       redirect_to_login_with_params(user)
     else
@@ -39,8 +39,8 @@ class Api::V1::OauthsController < ApplicationController
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax,
-      domain: Rails.env.development? ? 'localhost' : nil,
-      path: '/',
+      domain: Rails.env.development? ? "localhost" : nil,
+      path: "/",
       expires: 1.hour.from_now
     }
 
@@ -78,7 +78,7 @@ class Api::V1::OauthsController < ApplicationController
         email: email,
         username: username,
         name: name,
-        language: 'ja',
+        language: "ja",
         timezone: nil,
         is_active: true
       )

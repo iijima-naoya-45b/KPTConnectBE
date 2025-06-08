@@ -21,15 +21,15 @@ class CreateWorkLogs < ActiveRecord::Migration[7.0]
 
       # 評価スコア（1-5段階）
       t.integer :mood_score
-      t.check_constraint 'mood_score >= 1 AND mood_score <= 5', 
+      t.check_constraint 'mood_score >= 1 AND mood_score <= 5',
                          name: 'check_work_logs_mood_score'
-      
+
       t.integer :productivity_score
-      t.check_constraint 'productivity_score >= 1 AND productivity_score <= 5', 
+      t.check_constraint 'productivity_score >= 1 AND productivity_score <= 5',
                          name: 'check_work_logs_productivity_score'
-      
+
       t.integer :difficulty_score
-      t.check_constraint 'difficulty_score >= 1 AND difficulty_score <= 5', 
+      t.check_constraint 'difficulty_score >= 1 AND difficulty_score <= 5',
                          name: 'check_work_logs_difficulty_score'
 
       # 分類・メモ機能
@@ -42,7 +42,7 @@ class CreateWorkLogs < ActiveRecord::Migration[7.0]
 
       # ステータス管理
       t.string :status, default: 'completed', limit: 20
-      t.check_constraint "status IN ('in_progress', 'completed', 'paused', 'cancelled')", 
+      t.check_constraint "status IN ('in_progress', 'completed', 'paused', 'cancelled')",
                          name: 'check_work_logs_status'
 
       # Rails標準のタイムスタンプ
@@ -57,6 +57,6 @@ class CreateWorkLogs < ActiveRecord::Migration[7.0]
     add_index :work_logs, :tags, using: :gin
     add_index :work_logs, :status
     add_index :work_logs, :is_billable
-    add_index :work_logs, [:started_at, :ended_at]
+    add_index :work_logs, [ :started_at, :ended_at ]
   end
-end 
+end

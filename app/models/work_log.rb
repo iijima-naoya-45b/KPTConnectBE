@@ -15,19 +15,19 @@ class WorkLog < ApplicationRecord
   validates :status, inclusion: { in: %w[in_progress completed paused cancelled] }
   validates :location, length: { maximum: 100 }
   # スコープ
-  scope :active, -> { where.not(status: 'cancelled') }
-  scope :completed, -> { where(status: 'completed') }
-  scope :in_progress, -> { where(status: 'in_progress') }
+  scope :active, -> { where.not(status: "cancelled") }
+  scope :completed, -> { where(status: "completed") }
+  scope :in_progress, -> { where(status: "in_progress") }
   scope :by_date_range, ->(start_date, end_date) { where(started_at: start_date..end_date) }
   scope :by_category, ->(category) { where(category: category) }
   scope :by_project, ->(project) { where(project_name: project) }
   scope :billable, -> { where(is_billable: true) }
-  scope :with_tag, ->(tag) { where('? = ANY(tags)', tag) }
+  scope :with_tag, ->(tag) { where("? = ANY(tags)", tag) }
   scope :recent, -> { order(started_at: :desc) }
 
   def duration_minutes
     return 0 unless started_at && ended_at
-    
+
     ((ended_at - started_at) / 1.minute).round
   end
 
@@ -36,22 +36,22 @@ class WorkLog < ApplicationRecord
   end
 
   def completed?
-    status == 'completed'
+    status == "completed"
   end
 
   def in_progress?
-    status == 'in_progress'
+    status == "in_progress"
   end
 
   def average_score
-    scores = [mood_score, productivity_score, difficulty_score].compact
+    scores = [ mood_score, productivity_score, difficulty_score ].compact
     return nil if scores.empty?
-    
+
     scores.sum.to_f / scores.size
   end
 
   def complete!
-    update!(status: 'completed', ended_at: Time.current)
+    update!(status: "completed", ended_at: Time.current)
   end
 
   # KPTセッションとリンク
@@ -76,4 +76,4 @@ class WorkLog < ApplicationRecord
       popular_categories: logs.group(:category).count.sort_by { |_, count| -count }.first(5)
     }
   end
-end 
+end

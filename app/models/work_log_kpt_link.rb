@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 # 作業ログ-KPT関連付けモデル
-# 
+#
 # @description 作業ログとKPTセッションの多対多関係を管理するモデル
 # 作業ログとKPTセッションの関連性とその質を記録
-# 
+#
 # @attr [UUID] work_log_id 作業ログID
 # @attr [UUID] kpt_session_id KPTセッションID
 # @attr [Integer] relevance_score 関連性スコア (1-5)
@@ -22,7 +22,7 @@ class WorkLogKptLink < ApplicationRecord
   validates :work_log_id, uniqueness: { scope: :kpt_session_id }
 
   # スコープ
-  scope :high_relevance, -> { where('relevance_score >= ?', 4) }
+  scope :high_relevance, -> { where("relevance_score >= ?", 4) }
   scope :by_relevance, ->(score) { where(relevance_score: score) }
   scope :recent, -> { order(created_at: :desc) }
 
@@ -39,17 +39,17 @@ class WorkLogKptLink < ApplicationRecord
   def relevance_description
     case relevance_score
     when 5
-      '非常に強い関連性'
+      "非常に強い関連性"
     when 4
-      '強い関連性'
+      "強い関連性"
     when 3
-      '中程度の関連性'
+      "中程度の関連性"
     when 2
-      '弱い関連性'
+      "弱い関連性"
     when 1
-      '非常に弱い関連性'
+      "非常に弱い関連性"
     else
-      '未評価'
+      "未評価"
     end
   end
 
@@ -82,4 +82,4 @@ class WorkLogKptLink < ApplicationRecord
       kpt_sessions_count: links.joins(:kpt_session).count
     }
   end
-end 
+end

@@ -37,12 +37,12 @@ class Feedback < ApplicationRecord
 
   # スコープ
   scope :active, -> { where(is_active: true) }
-  scope :unread, -> { where(status: 'unread') }
-  scope :in_progress, -> { where(status: 'in_progress') }
-  scope :resolved, -> { where(status: 'resolved') }
+  scope :unread, -> { where(status: "unread") }
+  scope :in_progress, -> { where(status: "in_progress") }
+  scope :resolved, -> { where(status: "resolved") }
   scope :recent, -> { order(created_at: :desc) }
-  scope :by_priority, -> { joins(:feedback_priority).order('feedback_priorities.priority_level DESC') }
-  scope :high_priority, -> { joins(:feedback_priority).where('feedback_priorities.priority_level >= 3') }
+  scope :by_priority, -> { joins(:feedback_priority).order("feedback_priorities.priority_level DESC") }
+  scope :high_priority, -> { joins(:feedback_priority).where("feedback_priorities.priority_level >= 3") }
 
   # スコープ（日付範囲）
   scope :by_date_range, ->(start_date, end_date) { where(created_at: start_date..end_date) }
@@ -136,19 +136,19 @@ class Feedback < ApplicationRecord
   # 未読かどうかをチェック
   # @return [Boolean] 未読状態
   def unread?
-    status == 'unread'
+    status == "unread"
   end
 
   # 対応中かどうかをチェック
   # @return [Boolean] 対応中状態
   def in_progress?
-    status == 'in_progress'
+    status == "in_progress"
   end
 
   # 解決済みかどうかをチェック
   # @return [Boolean] 解決済み状態
   def resolved?
-    status == 'resolved'
+    status == "resolved"
   end
 
   # 高優先度かどうかをチェック
@@ -160,7 +160,7 @@ class Feedback < ApplicationRecord
   # 作成からの経過時間を取得
   # @return [String] 経過時間の文字列
   def time_since_created
-    time_ago_in_words(created_at) + '前'
+    time_ago_in_words(created_at) + "前"
   end
 
   # 解決までの所要時間を取得
@@ -200,33 +200,33 @@ class Feedback < ApplicationRecord
   # @param [String] notes 管理者メモ
   # @return [Boolean] 保存結果
   def mark_as_resolved(notes = nil)
-    change_status('resolved', notes)
+    change_status("resolved", notes)
   end
 
   # フィードバックを対応中にマーク
   # @param [String] notes 管理者メモ
   # @return [Boolean] 保存結果
   def mark_as_in_progress(notes = nil)
-    change_status('in_progress', notes)
+    change_status("in_progress", notes)
   end
 
   private
 
   # ステータスが解決済みの場合にresolved_atが設定されているかをチェック
   def resolved_at_presence_when_resolved
-    if status == 'resolved' && resolved_at.blank?
-      errors.add(:resolved_at, 'は解決済みの場合は必須です')
+    if status == "resolved" && resolved_at.blank?
+      errors.add(:resolved_at, "は解決済みの場合は必須です")
     end
   end
 
   # ステータス変更時にresolved_atを自動設定
   def set_resolved_at_on_status_change
     if status_changed?
-      if status == 'resolved' && resolved_at.blank?
+      if status == "resolved" && resolved_at.blank?
         self.resolved_at = Time.current
-      elsif status != 'resolved'
+      elsif status != "resolved"
         self.resolved_at = nil
       end
     end
   end
-end 
+end
