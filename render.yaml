@@ -3,7 +3,7 @@ services:
     name: kptconnect-backend
     runtime: ruby
     plan: free
-    buildCommand: bundle install && bundle exec rake assets:precompile
+    buildCommand: bundle install
     startCommand: bundle exec puma -C config/puma.rb
     envVars:
       - key: DATABASE_URL
