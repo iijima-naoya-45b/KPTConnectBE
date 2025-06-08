@@ -25,12 +25,36 @@ class KptSession < ApplicationRecord
   # バリデーション
   validates :title, presence: true, length: { maximum: 200 }
   validates :description, length: { maximum: 2000 }
-  validates :status, inclusion: { in: %w[draft in_progress completed archived] }
+  validates :status, inclusion: { in: %w[not_started in_progress completed pending] }
   validates :session_date, presence: true
   validates :template_name, length: { maximum: 100 }
 
+  # ステータスenum定義
+  enum status: {
+    not_started: 0, # 未着手
+    in_progress: 1, # 着手中
+    completed: 2,   # 完了
+    pending: 3      # 保留
+  }, _prefix: true
+
+  # 日本語⇔英語変換ヘルパー
+  STATUS_LABELS = {
+    'not_started' => '未着手',
+    'in_progress' => '着手中',
+    'completed'   => '完了',
+    'pending'     => '保留'
+  }.freeze
+
+  def status_ja
+    STATUS_LABELS[status] || status
+  end
+
+  def self.status_en(japanese)
+    STATUS_LABELS.invert[japanese] || japanese
+  end
+
   # スコープ
-  scope :active, -> { where.not(status: 'archived') }
+  scope :active, -> { where.not(status: 'pending') }
   scope :completed, -> { where(status: 'completed') }
   scope :recent, -> { order(session_date: :desc, created_at: :desc) }
   scope :templates, -> { where(is_template: true) }
