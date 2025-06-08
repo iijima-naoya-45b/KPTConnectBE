@@ -16,6 +16,8 @@ services:
         value: production
       - key: SECRET_KEY_BASE
         generateValue: true
+      - key: RAILS_SKIP_ASSET_COMPILATION
+        value: "true" 
 
 databases:
   - name: kptconnect-db
