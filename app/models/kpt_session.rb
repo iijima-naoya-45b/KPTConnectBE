@@ -29,14 +29,6 @@ class KptSession < ApplicationRecord
   validates :session_date, presence: true
   validates :template_name, length: { maximum: 100 }
 
-  # ステータスenum定義
-  enum status: {
-    not_started: 0, # 未着手
-    in_progress: 1, # 着手中
-    completed: 2,   # 完了
-    pending: 3      # 保留
-  }, _prefix: true
-
   # 日本語⇔英語変換ヘルパー
   STATUS_LABELS = {
     'not_started' => '未着手',
