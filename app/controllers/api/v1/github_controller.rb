@@ -1,8 +1,3 @@
-# RailsDoc
-# @file GithubController
-# @description GitHub Issue/コメント取得API
-# @note GITHUB_REPO_URL, OAuth認証済みセッションを利用
-
 class Api::V1::GithubController < ApplicationController
   before_action :require_github_token, only: [ :issues, :issue_detail ]
 
@@ -53,24 +48,17 @@ class Api::V1::GithubController < ApplicationController
   def webhook
     event_type = request.headers["X-GitHub-Event"]
     payload = JSON.parse(request.body.read)
-
-    Rails.logger.info "[GitHubWebhook] event_type=#{event_type} payload=#{payload.inspect}"
-
     case event_type
     when "project"
       # Project作成・編集・削除イベント
       # TODO: KPT/Taskへのマッピング処理
-      Rails.logger.info "[GitHubWebhook] Project event: #{payload['action']} #{payload['project'].inspect}"
     when "project_card"
       # Projectカード（Issue/PR/Note）作成・編集・移動・削除イベント
       # TODO: KPT/Taskへのマッピング処理
-      Rails.logger.info "[GitHubWebhook] ProjectCard event: #{payload['action']} #{payload['project_card'].inspect}"
     when "project_column"
       # Projectカラム（To do, In progress, Done等）作成・編集・移動・削除イベント
       # TODO: KPT/Taskへのマッピング処理
-      Rails.logger.info "[GitHubWebhook] ProjectColumn event: #{payload['action']} #{payload['project_column'].inspect}"
     else
-      Rails.logger.info "[GitHubWebhook] Unsupported event_type: #{event_type}"
     end
 
     head :ok
@@ -96,7 +84,6 @@ class Api::V1::GithubController < ApplicationController
     res = Faraday.get(url, nil, headers)
     JSON.parse(res.body) if res.status == 200
   rescue => e
-    Rails.logger.error("GitHub API error: #{e}")
     nil
   end
 

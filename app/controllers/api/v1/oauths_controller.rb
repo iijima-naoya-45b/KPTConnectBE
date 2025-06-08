@@ -32,8 +32,6 @@ class Api::V1::OauthsController < ApplicationController
     # user_id, uid, providerをjwtにセット
     payload = { user_id: user.id, uid: user.uid, provider: user.provider }.to_json
 
-    Rails.logger.info "Setting cookie for user: #{user.id}, uid: #{user.uid}, provider: #{user.provider}, payload: #{payload}"
-
     cookies.encrypted[:jwt] = {
       value: payload,
       httponly: true,
@@ -54,10 +52,6 @@ class Api::V1::OauthsController < ApplicationController
     username = user_info["login"] || user_info["name"]
     name = user_info["name"] || user_info["login"]
 
-    Rails.logger.info "OAuth Provider: #{provider}"
-    Rails.logger.info "User Hash: #{@user_hash}"
-    Rails.logger.info "Processed - Email: #{email}, Username: #{username}, Name: #{name}, UID: #{uid}"
-
     user = User.find_by(provider: provider, uid: uid)
     if user
       if !user.is_active?
@@ -67,7 +61,6 @@ class Api::V1::OauthsController < ApplicationController
         user.username = username
         user.name = name
         user.save!
-        Rails.logger.info "User reactivated and info updated: #{user.id}"
       end
     else
       user = User.create!(
@@ -80,7 +73,6 @@ class Api::V1::OauthsController < ApplicationController
         timezone: nil,
         is_active: true
       )
-      Rails.logger.info "New user created: #{user.id}"
     end
     user
   end
