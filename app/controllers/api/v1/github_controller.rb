@@ -4,21 +4,23 @@ class Api::V1::GithubController < ApplicationController
   # GET /api/v1/github/issues
   # @return [JSON] Issue一覧
   def issues
-    repo = ENV["GITHUB_REPO_URL"]&.split("github.com/")&.last
+    repo = params[:repo]
     return render_error("GITHUB_REPO_URLが未設定です") unless repo
 
     url = "https://api.github.com/repos/#{repo}/issues?state=all&per_page=50"
     response = github_api_get(url)
     return render_error("GitHub API取得失敗") unless response&.is_a?(Array)
 
-    issues = response.map { |issue| format_issue(issue) }
+    # PRでないものだけ抽出
+    issues = response.reject { |issue| issue.key?("pull_request") }
+    issues = issues.map { |issue| format_issue(issue) }
     render json: { success: true, issues: issues }
   end
 
   # GET /api/v1/github/issues/:number
   # @return [JSON] Issue詳細＋コメント
   def issue_detail
-    repo = ENV["GITHUB_REPO_URL"]&.split("github.com/")&.last
+    repo = params[:repo]
     return render_error("GITHUB_REPO_URLが未設定です") unless repo
 
     number = params[:number]

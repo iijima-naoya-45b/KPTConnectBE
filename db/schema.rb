@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_07_062122) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_15_060435) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -156,8 +156,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_062122) do
     t.check_constraint "emotion_score >= 1 AND emotion_score <= 5", name: "check_kpt_items_emotion_score"
     t.check_constraint "impact_score >= 1 AND impact_score <= 5", name: "check_kpt_items_impact_score"
     t.check_constraint "priority::text = ANY (ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying]::text[])", name: "check_kpt_items_priority"
-    t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'cancelled'::character varying]::text[])", name: "check_kpt_items_status"
     t.check_constraint "type::text = ANY (ARRAY['keep'::character varying, 'problem'::character varying, 'try'::character varying]::text[])", name: "check_kpt_items_type"
+  end
+
+  create_table "kpt_reviews", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title"
+    t.string "description"
+    t.text "keep"
+    t.text "problem"
+    t.text "try"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_kpt_reviews_on_user_id"
   end
 
   create_table "kpt_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -377,6 +388,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_07_062122) do
   add_foreign_key "insights", "kpt_sessions"
   add_foreign_key "insights", "users"
   add_foreign_key "kpt_items", "kpt_sessions"
+  add_foreign_key "kpt_reviews", "users"
   add_foreign_key "kpt_sessions", "users"
   add_foreign_key "payment_methods", "users"
   add_foreign_key "payments", "subscriptions"

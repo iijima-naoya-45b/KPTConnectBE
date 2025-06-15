@@ -59,6 +59,7 @@ Rails.application.routes.draw do
         collection do
           get :stats
           get :trends
+          post :import_github
         end
       end
 
@@ -139,9 +140,11 @@ Rails.application.routes.draw do
         end
       end
 
+      get "github/repositories", to: "github#repositories"
       get "github/issues", to: "github#issues"
-      get "github/issues/:number", to: "github#issue_detail"
-      post "github/webhook", to: "github#webhook"
+      get "github/pull_requests", to: "github#pull_requests"
+
+      resources :kpt_reviews, only: [:create, :index, :update, :destroy]
     end
   end
 end

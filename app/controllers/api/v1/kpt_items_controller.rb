@@ -66,8 +66,29 @@ class Api::V1::KptItemsController < ApplicationController
   # アイテムを作成
   def create
     begin
-      kpt_session = current_user.kpt_sessions.find(params[:item][:kpt_session_id])
-      @kpt_item = kpt_session.kpt_items.build(item_params)
+      kpt_session = current_user.kpt_sessions.last
+      unless kpt_session
+        kpt_session = current_user.kpt_sessions.create!(
+          session_date: Date.current,
+          title: "GitHub Issues Import - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
+        )
+      end
+      @kpt_item = kpt_session.kpt_items.build(
+        type: params[:item][:type],
+        content: params[:item][:content],
+        status: params[:item][:status],
+        priority: params[:item][:priority],
+        notes: params[:item][:notes],
+        external_repo: params[:item][:external_repo],
+        external_number: params[:item][:external_number],
+        external_url: params[:item][:external_url]
+      )
+
+      puts "status: #{@kpt_item.status.inspect} (#{@kpt_item.status.class})"
+      puts "type: #{@kpt_item.type.inspect} (#{@kpt_item.type.class})"
+      unless @kpt_item.valid?
+        puts "Validation errors (valid?): #{@kpt_item.errors.full_messages.inspect}"
+      end
 
       if @kpt_item.save
         item_data = format_kpt_item_detail(@kpt_item)
@@ -218,6 +239,12 @@ class Api::V1::KptItemsController < ApplicationController
       new_kpt_session = current_user.kpt_sessions.find(params[:new_kpt_session_id])
       @kpt_item = @kpt_item.dup
       @kpt_item.kpt_session_id = new_kpt_session.id
+
+      puts "status: #{@kpt_item.status.inspect} (#{@kpt_item.status.class})"
+      puts "type: #{@kpt_item.type.inspect} (#{@kpt_item.type.class})"
+      unless @kpt_item.valid?
+        puts "Validation errors (valid?): #{@kpt_item.errors.full_messages.inspect}"
+      end
 
       if @kpt_item.save
         item_data = format_kpt_item_detail(@kpt_item)
@@ -374,6 +401,96 @@ class Api::V1::KptItemsController < ApplicationController
     end
   end
 
+  # GitHub Issuesのインポート
+  # @description 選択されたGitHub IssuesをKPTアイテムとして一括保存
+  # @return [JSON] 保存結果（success, error）
+  def import_github
+    begin
+      puts "=== import_github started ==="
+      items_params = import_github_params
+      puts "items_params: #{items_params.inspect}"
+
+      kpt_session = current_user.kpt_sessions.last
+      unless kpt_session
+        puts "Creating new KPT session"
+        kpt_session = current_user.kpt_sessions.create!(
+          session_date: Date.current,
+          title: "GitHub Issues Import - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
+        )
+      end
+      puts "Using KPT session: #{kpt_session.inspect}"
+
+      success_count = 0
+      error_count = 0
+      error_messages = []
+
+      items_params.each_with_index do |item_params, idx|
+        # GitHubのstateをKPTのstatusに変換
+        status = case item_params[:status].to_s.downcase
+        when "open"
+          "open"
+        when "in_progress", "doing"
+          "in_progress"
+        when "completed", "done", "closed"
+          "completed"
+        when "cancelled", "rejected"
+          "cancelled"
+        else
+          puts "Unknown status: #{item_params[:status]}, defaulting to 'open'"
+          "open"
+        end
+        puts "[#{idx}] Converted status: #{status}"
+
+        kpt_item = KptItem.new(
+          kpt_session_id: kpt_session.id,
+          type: item_params[:type],
+          content: item_params[:content],
+          status: status,
+          priority: item_params[:priority],
+          notes: item_params[:notes],
+          external_repo: item_params[:external_repo],
+          external_number: item_params[:external_number],
+          external_url: item_params[:external_url]
+        )
+        puts "[#{idx}] Created KPT item: #{kpt_item.inspect}"
+        puts "[#{idx}] kpt_item.status: '#{kpt_item.status}' (#{kpt_item.status.class})"
+        puts "[#{idx}] Allowed STATUSES: #{KptItem::STATUSES.inspect}"
+
+        if kpt_item.valid?
+          kpt_item.save!
+          puts "[#{idx}] KPT item saved successfully"
+          success_count += 1
+        else
+          puts "[#{idx}] Validation errors: #{kpt_item.errors.full_messages}"
+          error_count += 1
+          error_messages << "[#{idx}] #{kpt_item.errors.full_messages.join(', ')}"
+        end
+      end
+
+      if error_count == 0
+        render json: {
+          success: true,
+          message: "GitHub Issuesをインポートしました (#{success_count}件)"
+        }, status: :ok
+      else
+        render json: {
+          success: false,
+          message: "一部のGitHub Issueのインポートに失敗しました",
+          imported_count: success_count,
+          failed_count: error_count,
+          errors: error_messages
+        }, status: :unprocessable_entity
+      end
+    rescue StandardError => e
+      puts "Error in import_github: #{e.class} - #{e.message}"
+      puts e.backtrace.join("\n")
+      render json: {
+        success: false,
+        error: "GitHub Issueのインポート中にエラーが発生しました: #{e.message}"
+      }, status: :internal_server_error
+    end
+  end
+
   private
 
   # KPTアイテムを設定
@@ -393,6 +510,26 @@ class Api::V1::KptItemsController < ApplicationController
       :emotion_score, :impact_score, :notes,
       tags: []
     )
+  end
+
+  # GitHub Issuesインポート用パラメーターを許可
+  def import_github_params
+    puts "=== import_github_params called ==="
+    items = params.require(:items)
+    puts "items.class: #{items.class}"
+    items.each_with_index do |item, idx|
+      puts "item[#{idx}].class: #{item.class}, item: #{item.inspect}"
+    end
+    items.map do |item|
+      permitted = if item.is_a?(ActionController::Parameters)
+        item.permit(:type, :content, :status, :priority, :notes, :external_repo, :external_number, :external_url).to_h
+      else
+        # すでにHashならそのまま
+        item.slice("type", "content", "status", "priority", "notes", "external_repo", "external_number", "external_url")
+      end
+      puts "permitted: #{permitted.inspect}"
+      permitted
+    end
   end
 
   # アイテムサマリーを整形
@@ -432,7 +569,7 @@ class Api::V1::KptItemsController < ApplicationController
       priority: item.priority,
       priority_name_ja: item.priority_name_ja,
       status: item.status,
-      status_name_ja: item.status_name_ja,
+      status_display: item.status_display,
       due_date: item.due_date,
       start_date: item.start_date,
       end_date: item.end_date,
