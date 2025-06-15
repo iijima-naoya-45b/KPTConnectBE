@@ -1,48 +1,26 @@
 # frozen_string_literal: true
 
-# KPTアイテムモデル
-#
-# @description Keep, Problem, Tryの各アイテムを管理するモデル
-# セッション内の個別アイテム、優先度、ステータス、感情/インパクトスコアを管理
-#
-# @attr [UUID] kpt_session_id KPTセッションID
-# @attr [String] type アイテムタイプ (keep, problem, try)
-# @attr [String] content アイテム内容
-# @attr [String] priority 優先度 (low, medium, high)
-# @attr [String] status ステータス (open, in_progress, completed, cancelled)
-# @attr [Date] due_date 期限
-# @attr [Date] start_date 開始日
-# @attr [Date] end_date 終了日
-# @attr [String] assigned_to 担当者
-# @attr [Integer] emotion_score 感情スコア (1-5)
-# @attr [Integer] impact_score インパクトスコア (1-5)
-# @attr [Array<String>] tags タグリスト
-# @attr [String] notes 備考
-# @attr [DateTime] completed_at 完了日時
 class KptItem < ApplicationRecord
-  # Single Table Inheritanceを無効にする（typeカラムを通常のデータ用途で使用するため）
   self.inheritance_column = nil
 
-  # リレーション
+  
   belongs_to :kpt_session
 
   # バリデーション
   validates :type, inclusion: { in: %w[keep problem try] }
   validates :content, presence: true, length: { maximum: 2000 }
   validates :priority, inclusion: { in: %w[low medium high] }
-  validates :status, inclusion: { in: %w[open in_progress completed cancelled] }
+  STATUSES = %w[open in_progress completed cancelled]
   validates :emotion_score, inclusion: { in: 1..5 }, allow_nil: true
   validates :impact_score, inclusion: { in: 1..5 }, allow_nil: true
   validates :assigned_to, length: { maximum: 100 }
-
   # スコープ
   scope :keeps, -> { where(type: "keep") }
   scope :problems, -> { where(type: "problem") }
   scope :tries, -> { where(type: "try") }
   scope :by_priority, ->(priority) { where(priority: priority) }
-  scope :by_status, ->(status) { where(status: status) }
-  scope :completed, -> { where(status: "completed") }
-  scope :active, -> { where.not(status: [ "completed", "cancelled" ]) }
+  
+  
   scope :overdue, -> { where("due_date < ?", Date.current).active }
   scope :due_soon, -> { where(due_date: Date.current..3.days.from_now).active }
   scope :with_emotion_score, -> { where.not(emotion_score: nil) }
@@ -51,22 +29,15 @@ class KptItem < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   scope :with_tag, ->(tag) { where("? = ANY(tags)", tag) }
 
-  # コールバック
-  after_update :update_completed_at, if: :completed_status_changed?
+  validates :status, presence: true, inclusion: { in: STATUSES }
 
   # インスタンスメソッド
 
   # アイテムが完了しているかチェック
   # @return [Boolean] 完了状態
-  def completed?
-    status == "completed"
-  end
 
   # アイテムがアクティブかチェック
   # @return [Boolean] アクティブ状態
-  def active?
-    !%w[completed cancelled].include?(status)
-  end
 
   # 期限切れかチェック
   # @return [Boolean] 期限切れ状態
@@ -106,20 +77,8 @@ class KptItem < ApplicationRecord
     end
   end
 
-  # ステータスの日本語名を取得
-  # @return [String] 日本語ステータス名
-  def status_name_ja
-    case status
-    when "open"
-      "未着手"
-    when "in_progress"
-      "進行中"
-    when "completed"
-      "完了"
-    when "cancelled"
-      "キャンセル"
-    end
-  end
+  # ステータスの表示名を取得
+  # @return [String] ステータス表示名
 
   # アイテムの重要度スコアを計算
   # @return [Float] 重要度スコア (1.0-5.0)
@@ -240,6 +199,7 @@ class KptItem < ApplicationRecord
   end
 
   private
+
 
   # 完了日時を更新
   def update_completed_at
