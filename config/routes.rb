@@ -145,6 +145,13 @@ Rails.application.routes.draw do
       get "github/pull_requests", to: "github#pull_requests"
 
       resources :kpt_reviews, only: [:create, :index, :update, :destroy]
+
+      resources :goals do
+        collection do
+          post :ai_suggest
+        end
+      end
+      resources :ai_goal_insights
     end
   end
 end

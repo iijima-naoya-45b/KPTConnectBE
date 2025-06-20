@@ -34,6 +34,8 @@ class User < ApplicationRecord
   has_many :notifications, dependent: :destroy
   has_many :feedbacks, dependent: :destroy
   has_many :reflection_marks, dependent: :destroy
+  has_many :goals
+  has_many :ai_goal_insights
 
   # バリデーション
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }

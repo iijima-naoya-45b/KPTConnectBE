@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user_id: 
+  title: MyString
+  description: MyText
+  mile_stone: MyText
+  action_plan: MyText
+
+two:
+  user_id: 
+  title: MyString
+  description: MyText
+  mile_stone: MyText
+  action_plan: MyText

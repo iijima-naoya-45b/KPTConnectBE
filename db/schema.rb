@@ -10,10 +10,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_15_060435) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
+
+  create_table "ai_goal_insights", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "title"
+    t.text "description"
+    t.text "action_plan"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "milestone"
+    t.text "progress_check"
+    t.string "status"
+    t.integer "progress", default: 0, null: false
+  end
 
   create_table "authentications", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -99,6 +112,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_15_060435) do
     t.index ["status", "created_at"], name: "index_feedbacks_on_status_and_created"
     t.index ["user_id", "created_at"], name: "index_feedbacks_on_user_and_created"
     t.index ["user_id"], name: "index_feedbacks_on_user_id"
+  end
+
+  create_table "goals", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title", null: false
+    t.integer "progress", default: 0
+    t.text "description"
+    t.date "deadline"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_goals_on_user_id"
   end
 
   create_table "insights", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -385,6 +409,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_15_060435) do
   add_foreign_key "feedbacks", "feedback_priorities"
   add_foreign_key "feedbacks", "feedback_types"
   add_foreign_key "feedbacks", "users"
+  add_foreign_key "goals", "users"
   add_foreign_key "insights", "kpt_sessions"
   add_foreign_key "insights", "users"
   add_foreign_key "kpt_items", "kpt_sessions"
