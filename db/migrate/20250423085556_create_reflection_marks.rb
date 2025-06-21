@@ -8,6 +8,9 @@ class CreateReflectionMarks < ActiveRecord::Migration[8.0]
     # usersテーブルが存在するかチェック
     return unless table_exists?(:users)
     
+    # reflection_marksテーブルが既に存在するかチェック
+    return if table_exists?(:reflection_marks)
+    
     create_table :reflection_marks do |t|
       t.references :user, null: false, foreign_key: true, comment: 'ユーザーID'
       t.date :date, null: false, comment: 'マークした日付'
