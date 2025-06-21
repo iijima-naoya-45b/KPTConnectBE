@@ -148,10 +148,9 @@ Rails.application.routes.draw do
 
       resources :goals do
         collection do
-          post :ai_suggest
+          post :suggest
         end
       end
-      resources :ai_goal_insights
     end
   end
 end

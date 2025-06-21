@@ -49,30 +49,45 @@ class Api::V1::OauthsController < ApplicationController
     user_info = @user_hash[:user_info]
     uid = user_info["id"].to_s # すべてのプロバイダーで共通
     email = user_info["email"]
-    username = user_info["login"] || user_info["name"]
-    name = user_info["name"] || user_info["login"]
+    username = user_info["login"] || user_info["name"] || email.split("@").first
 
+    # まず、同じproviderとuidでユーザーを検索
     user = User.find_by(provider: provider, uid: uid)
+    
     if user
+      # 既存ユーザーが見つかった場合、情報を更新
       if !user.is_active?
         user.is_active = true
         user.deleted_at = nil if user.respond_to?(:deleted_at)
-        user.email = email
-        user.username = username
-        user.name = name
-        user.save!
       end
+      user.email = email
+      user.username = username
+      user.save!
     else
-      user = User.create!(
-        provider: provider,
-        uid: uid,
-        email: email,
-        username: username,
-        name: name,
-        language: "ja",
-        timezone: nil,
-        is_active: true
-      )
+      # 同じproviderとuidのユーザーが見つからない場合、emailで検索
+      existing_user = User.find_by(email: email)
+      
+      if existing_user
+        # 同じemailのユーザーが存在する場合、そのユーザーを更新
+        existing_user.provider = provider
+        existing_user.uid = uid
+        existing_user.username = username
+        existing_user.is_active = true
+        existing_user.deleted_at = nil if existing_user.respond_to?(:deleted_at)
+        existing_user.save!
+        user = existing_user
+      else
+        # 新しいユーザーを作成
+        user = User.create!(
+          provider: provider,
+          uid: uid,
+          email: email,
+          username: username,
+          language: "ja",
+          timezone: nil,
+          is_active: true
+        )
+      end
     end
     user
   end
