@@ -110,9 +110,9 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
-    faraday-multipart (1.1.0)
+    faraday-multipart (1.1.1)
       multipart-post (~> 2.0)
-    faraday-net_http (3.4.0)
+    faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
@@ -127,7 +127,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.10.2)
+    json (2.12.2)
     jwt (2.10.1)
       base64
     kamal (2.5.3)
@@ -307,7 +307,7 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
-    ruby-openai (7.4.0)
+    ruby-openai (8.1.0)
       event_stream_parser (>= 0.3.0, < 2.0.0)
       faraday (>= 1)
       faraday-multipart (>= 1)
@@ -394,7 +394,7 @@ DEPENDENCIES
   rails (~> 8.0.2)
   redis
   rubocop-rails-omakase
-  ruby-openai (~> 7.0)
+  ruby-openai (~> 8.1)
   solid_cable
   solid_cache
   solid_queue
