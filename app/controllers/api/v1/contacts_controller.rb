@@ -13,11 +13,11 @@ class Api::V1::ContactsController < ApplicationController
 
     # メール送信
     begin
-      # ユーザー宛の確認メール（非同期）
-      ContactMailer.contact_confirmation(contact_params).deliver_later
+      # ユーザー宛の確認メール
+      ContactMailer.contact_confirmation(contact_params).deliver_now
       
-      # 管理者宛の通知メール（非同期）
-      ContactMailer.contact_notification(contact_params).deliver_later
+      # 管理者宛の通知メール
+      ContactMailer.contact_notification(contact_params).deliver_now
       
       render json: { 
         message: 'お問い合わせを受け付けました。確認メールをお送りしましたのでご確認ください。',
