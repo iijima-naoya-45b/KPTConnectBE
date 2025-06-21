@@ -5,6 +5,9 @@
 # @description 個人振り返りカレンダーの日付マーク機能用テーブル
 class CreateReflectionMarks < ActiveRecord::Migration[8.0]
   def change
+    # usersテーブルが存在するかチェック
+    return unless table_exists?(:users)
+    
     create_table :reflection_marks do |t|
       t.references :user, null: false, foreign_key: true, comment: 'ユーザーID'
       t.date :date, null: false, comment: 'マークした日付'

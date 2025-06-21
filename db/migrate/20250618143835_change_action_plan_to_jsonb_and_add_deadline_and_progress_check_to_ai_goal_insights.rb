@@ -1,7 +1,10 @@
 class ChangeActionPlanToJsonbAndAddDeadlineAndProgressCheckToAiGoalInsights < ActiveRecord::Migration[8.0]
   def up
     # action_plan: text -> jsonb
-    change_column :ai_goal_insights, :action_plan, 'jsonb USING CASE WHEN action_plan IS NULL OR action_plan = '' THEN ''[]''::jsonb ELSE to_jsonb(array[action_plan]) END', default: '[]', null: false
+    change_column :ai_goal_insights, :action_plan, :jsonb, 
+                  using: "CASE WHEN action_plan IS NULL OR action_plan = '' THEN '[]'::jsonb ELSE to_jsonb(array[action_plan]) END",
+                  default: '[]', 
+                  null: false
     # deadline: date
     add_column :ai_goal_insights, :deadline, :date
     # progress_check: text
