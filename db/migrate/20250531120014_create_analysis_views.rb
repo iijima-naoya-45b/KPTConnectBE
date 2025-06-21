@@ -9,9 +9,9 @@ class CreateAnalysisViews < ActiveRecord::Migration[7.0]
         # ユーザーのKPT統計ビュー
         execute <<-SQL
           CREATE VIEW user_kpt_stats AS
-          SELECT#{' '}
+          SELECT 
             u.id as user_id,
-            u.name as user_name,
+            COALESCE(u.username, u.email) as user_name,
             COUNT(DISTINCT s.id) as total_sessions,
             COUNT(CASE WHEN i.type = 'keep' THEN 1 END) as keep_count,
             COUNT(CASE WHEN i.type = 'problem' THEN 1 END) as problem_count,
@@ -22,13 +22,13 @@ class CreateAnalysisViews < ActiveRecord::Migration[7.0]
           FROM users u
           LEFT JOIN kpt_sessions s ON u.id = s.user_id
           LEFT JOIN kpt_items i ON s.id = i.kpt_session_id
-          GROUP BY u.id, u.name;
+          GROUP BY u.id, COALESCE(u.username, u.email);
         SQL
 
         # 月別KPTトレンドビュー
         execute <<-SQL
           CREATE VIEW monthly_kpt_trends AS
-          SELECT#{' '}
+          SELECT 
             user_id,
             DATE_TRUNC('month', session_date) as month,
             COUNT(DISTINCT s.id) as sessions_count,
@@ -44,7 +44,7 @@ class CreateAnalysisViews < ActiveRecord::Migration[7.0]
         # 作業ログ統計ビュー
         execute <<-SQL
           CREATE VIEW work_log_stats AS
-          SELECT#{' '}
+          SELECT 
             user_id,
             DATE_TRUNC('week', started_at) as week,
             COUNT(*) as total_logs,

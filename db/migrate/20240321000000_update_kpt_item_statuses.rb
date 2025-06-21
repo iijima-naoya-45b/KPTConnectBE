@@ -2,6 +2,9 @@
 
 class UpdateKptItemStatuses < ActiveRecord::Migration[7.0]
   def up
+    # テーブルが存在するかチェック
+    return unless table_exists?(:kpt_items)
+    
     # 既存のstatus値を新しい値に変換
     execute <<-SQL
       UPDATE kpt_items
@@ -23,6 +26,9 @@ class UpdateKptItemStatuses < ActiveRecord::Migration[7.0]
   end
 
   def down
+    # テーブルが存在するかチェック
+    return unless table_exists?(:kpt_items)
+    
     # CHECK制約を削除
     execute <<-SQL
       ALTER TABLE kpt_items

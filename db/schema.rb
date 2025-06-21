@@ -19,13 +19,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
     t.bigint "user_id"
     t.string "title"
     t.text "description"
-    t.text "action_plan"
+    t.jsonb "action_plan", default: "[]", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.date "milestone"
+    t.date "deadline"
     t.text "progress_check"
-    t.string "status"
+    t.date "milestone"
+    t.string "status", default: "not_started", null: false
     t.integer "progress", default: 0, null: false
+    t.index ["status"], name: "index_ai_goal_insights_on_status"
+    t.check_constraint "status::text = ANY (ARRAY['not_started'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'paused'::character varying]::text[])", name: "check_ai_goal_insights_status"
   end
 
   create_table "authentications", force: :cascade do |t|
@@ -213,7 +216,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
     t.index ["status"], name: "index_kpt_sessions_on_status"
     t.index ["tags"], name: "index_kpt_sessions_on_tags", using: :gin
     t.index ["user_id"], name: "index_kpt_sessions_on_user_id"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying::text, 'in_progress'::character varying::text, 'completed'::character varying::text, 'archived'::character varying::text])", name: "check_kpt_sessions_status"
+    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'archived'::character varying]::text[])", name: "check_kpt_sessions_status"
   end
 
   create_table "payment_methods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -340,7 +343,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
     t.string "uid", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "name"
     t.text "avatar_url"
     t.string "stripe_customer_id", limit: 255
     t.string "timezone", limit: 50, default: "Asia/Tokyo"
