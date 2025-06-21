@@ -29,8 +29,13 @@ class Api::V1::OauthsController < ApplicationController
   end
 
   def redirect_to_login_with_params(user)
-    # user_id, uid, providerをjwtにセット
-    payload = { user_id: user.id, uid: user.uid, provider: user.provider }.to_json
+    # user_id, uid, provider, exp（有効期限）をjwtにセット
+    payload = { 
+      user_id: user.id, 
+      uid: user.uid, 
+      provider: user.provider,
+      exp: 24.hours.from_now.to_i 
+    }.to_json
 
     cookies.encrypted[:jwt] = {
       value: payload,
@@ -39,7 +44,7 @@ class Api::V1::OauthsController < ApplicationController
       same_site: :lax,
       domain: Rails.env.development? ? "localhost" : nil,
       path: "/",
-      expires: 1.hour.from_now
+      expires: 24.hours.from_now
     }
 
     redirect_to ENV["FRONTEND_URL"], allow_other_host: true

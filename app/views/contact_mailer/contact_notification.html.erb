@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新しいお問い合わせ</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #dc2626;
+    }
+    .header h1 {
+      color: #dc2626;
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      margin-bottom: 30px;
+    }
+    .contact-details {
+      background-color: #fef2f2;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      border-left: 4px solid #dc2626;
+    }
+    .contact-details h3 {
+      margin-top: 0;
+      color: #dc2626;
+    }
+    .contact-details p {
+      margin: 8px 0;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .urgent {
+      background-color: #fef3c7;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #f59e0b;
+      margin: 20px 0;
+    }
+    .action-buttons {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .action-button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 0 10px;
+      background-color: #6366f1;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+    .action-button:hover {
+      background-color: #4f46e5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>KPT Connect</h1>
+      <p>新しいお問い合わせが届きました</p>
+    </div>
+
+    <div class="content">
+      <p>新しいお問い合わせが届きました。内容を確認し、適切な対応をお願いします。</p>
+
+      <div class="urgent">
+        <strong>⚠️ 対応が必要です</strong><br>
+        通常24時間以内に回答することをお約束しています。
+      </div>
+
+      <div class="contact-details">
+        <h3>お問い合わせ詳細</h3>
+        <p><strong>件名：</strong><%= @subject %></p>
+        <p><strong>お名前：</strong><%= @name %></p>
+        <p><strong>メールアドレス：</strong><%= @email %></p>
+        <p><strong>受信日時：</strong><%= @timestamp %></p>
+        <p><strong>メッセージ：</strong></p>
+        <div style="white-space: pre-wrap; background-color: white; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb;">
+          <%= @message %>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <a href="mailto:<%= @email %>?subject=Re: <%= @subject %>" class="action-button">
+          📧 返信する
+        </a>
+        <a href="https://kptconnect.com/admin/contacts" class="action-button">
+          🔧 管理画面
+        </a>
+      </div>
+
+      <p><strong>対応手順：</strong></p>
+      <ol>
+        <li>内容を確認し、必要に応じて追加情報を収集</li>
+        <li>適切な回答を作成</li>
+        <li>ContactMailer.contact_completedを使用して回答メールを送信</li>
+        <li>管理画面で対応状況を更新</li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      <p>KPT Connect - 管理者通知</p>
+      <p>© <%= Date.current.year %> KPT Connect. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html> 
