@@ -10,26 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_21_031704) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
-
-  create_table "ai_goal_insights", force: :cascade do |t|
-    t.bigint "user_id"
-    t.string "title"
-    t.text "description"
-    t.jsonb "action_plan", default: "[]", null: false
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.date "deadline"
-    t.text "progress_check"
-    t.date "milestone"
-    t.string "status", default: "not_started", null: false
-    t.integer "progress", default: 0, null: false
-    t.index ["status"], name: "index_ai_goal_insights_on_status"
-    t.check_constraint "status::text = ANY (ARRAY['not_started'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'paused'::character varying]::text[])", name: "check_ai_goal_insights_status"
-  end
 
   create_table "authentications", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -120,11 +104,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_20_152231) do
   create_table "goals", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "title", null: false
-    t.integer "progress", default: 0
+    t.integer "progress", default: 0, null: false
     t.text "description"
     t.date "deadline"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.json "action_plan", default: []
+    t.string "status", default: "not_started", null: false
+    t.text "progress_check"
+    t.boolean "created_by_ai", default: false, null: false
     t.index ["user_id"], name: "index_goals_on_user_id"
   end
 
