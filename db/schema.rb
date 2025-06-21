@@ -107,12 +107,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_031704) do
     t.integer "progress", default: 0, null: false
     t.text "description"
     t.date "deadline"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.json "action_plan", default: []
     t.string "status", default: "not_started", null: false
     t.text "progress_check"
     t.boolean "created_by_ai", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_goals_on_user_id"
   end
 
