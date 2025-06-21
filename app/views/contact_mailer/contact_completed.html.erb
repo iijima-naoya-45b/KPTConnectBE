@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お問い合わせへの回答</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #10b981;
+    }
+    .header h1 {
+      color: #10b981;
+      margin: 0;
+      font-size: 24px;
+    }
+    .content {
+      margin-bottom: 30px;
+    }
+    .response-section {
+      background-color: #f0fdf4;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+      border-left: 4px solid #10b981;
+    }
+    .response-section h3 {
+      margin-top: 0;
+      color: #10b981;
+    }
+    .original-contact {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 20px 0;
+    }
+    .original-contact h3 {
+      margin-top: 0;
+      color: #6366f1;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .satisfaction {
+      background-color: #fef3c7;
+      padding: 15px;
+      border-radius: 6px;
+      border-left: 4px solid #f59e0b;
+      margin: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>KPT Connect</h1>
+      <p>お問い合わせへの回答</p>
+    </div>
+
+    <div class="content">
+      <p><%= @name %> 様</p>
+      
+      <p>KPT Connectをご利用いただき、ありがとうございます。</p>
+      
+      <p>お問い合わせいただいた内容について、以下の通り回答いたします。</p>
+
+      <div class="response-section">
+        <h3>回答内容</h3>
+        <div style="white-space: pre-wrap; background-color: white; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb;">
+          <%= @response %>
+        </div>
+      </div>
+
+      <div class="original-contact">
+        <h3>お問い合わせ内容（参考）</h3>
+        <p><strong>件名：</strong><%= @subject %></p>
+        <p><strong>お問い合わせ日時：</strong><%= Time.current.strftime("%Y年%m月%d日 %H:%M:%S") %></p>
+        <p><strong>メッセージ：</strong></p>
+        <div style="white-space: pre-wrap; background-color: white; padding: 15px; border-radius: 4px; border: 1px solid #e5e7eb;">
+          <%= @message %>
+        </div>
+      </div>
+
+      <div class="satisfaction">
+        <p><strong>この回答でご満足いただけましたか？</strong></p>
+        <p>さらなるご質問やご要望がございましたら、お気軽にお問い合わせください。</p>
+      </div>
+
+      <p>引き続きKPT Connectをご愛顧いただけますよう、よろしくお願いいたします。</p>
+    </div>
+
+    <div class="footer">
+      <p>KPT Connect - 個人開発の振り返りをより効果的に</p>
+      <p>© <%= Date.current.year %> KPT Connect. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html> 

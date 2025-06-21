@@ -61,4 +61,7 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # 開発環境でのメール送信テスト用
+  gem "letter_opener"
 end

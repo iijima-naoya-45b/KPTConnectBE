@@ -151,6 +151,9 @@ Rails.application.routes.draw do
           post :suggest
         end
       end
+
+      # お問い合わせ
+      resources :contacts, only: [:create]
     end
   end
 end
