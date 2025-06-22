@@ -7,72 +7,39 @@ class Api::V1::KptItemsController < ApplicationController
 
   # KPTアイテム一覧を取得
   def index
-    begin
+    safe_execute do
+      type_filter = params[:type]
+      status_filter = params[:status]
+      
       items = current_user.kpt_items.includes(:kpt_session)
-
-      # フィルター適用
-      items = items.where(type: params[:type]) if params[:type].present?
-      items = items.by_status(params[:status]) if params[:status].present?
-      items = items.by_priority(params[:priority]) if params[:priority].present?
-      items = items.with_tag(params[:tag]) if params[:tag].present?
-      items = items.where(kpt_session_id: params[:kpt_session_id]) if params[:kpt_session_id].present?
-
-      # ソート
-      items = items.recent
-
-      # ページネーション
-      page = params[:page]&.to_i || 1
-      per_page = [ params[:per_page]&.to_i || 20, 100 ].min
-
-      total_count = items.count
-      items = items.offset((page - 1) * per_page).limit(per_page)
-
-      # データ整形
+      items = items.where(type: type_filter) if type_filter.present?
+      items = items.where(status: status_filter) if status_filter.present?
+      
       items_data = items.map { |item| format_kpt_item_summary(item) }
-
-      render json: {
-        success: true,
-        data: {
-          items: items_data,
-          pagination: {
-            current_page: page,
-            per_page: per_page,
-            total_pages: (total_count.to_f / per_page).ceil,
-            total_count: total_count
-          }
-        },
+      
+      render_success(
+        data: { items: items_data },
         message: "アイテム一覧を取得しました"
-      }, status: :ok
-    rescue StandardError => e
-      render_error(error: "KPT項目一覧の取得中にエラーが発生しました", status: :internal_server_error)
+      )
     end
   end
 
   # アイテム詳細を取得
   def show
-    begin
+    safe_execute do
       item_data = format_kpt_item_detail(@kpt_item)
-
-      render json: {
-        success: true,
+      
+      render_success(
         data: item_data,
         message: "アイテム詳細を取得しました"
-      }, status: :ok
-    rescue StandardError => e
-      render_error(error: "アイテム詳細の取得に失敗しました", status: :internal_server_error)
+      )
     end
   end
 
   # アイテムを作成
   def create
-    begin
-      kpt_session = current_user.kpt_sessions.last
-      unless kpt_session
-        kpt_session = current_user.kpt_sessions.create!(
-          session_date: Date.current,
-          title: "GitHub Issues Import - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
-        )
-      end
+    safe_database_operation do
+      kpt_session = current_user.kpt_sessions.find(params[:kpt_session_id])
       @kpt_item = kpt_session.kpt_items.build(
         type: params[:item][:type],
         content: params[:item][:content],
@@ -84,313 +51,179 @@ class Api::V1::KptItemsController < ApplicationController
         external_url: params[:item][:external_url]
       )
 
-      puts "status: #{@kpt_item.status.inspect} (#{@kpt_item.status.class})"
-      puts "type: #{@kpt_item.type.inspect} (#{@kpt_item.type.class})"
-      unless @kpt_item.valid?
-        puts "Validation errors (valid?): #{@kpt_item.errors.full_messages.inspect}"
-      end
-
       if @kpt_item.save
         item_data = format_kpt_item_detail(@kpt_item)
 
-        render json: {
-          success: true,
+        render_success(
           data: item_data,
-          message: "アイテムを作成しました"
-        }, status: :created
+          message: "アイテムを作成しました",
+          status: :created
+        )
       else
-        render json: {
-          success: false,
-          error: "アイテムの作成に失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの作成に失敗しました")
       end
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {
-        success: false,
-        error: "セッションが見つかりません"
-      }, status: :not_found
-    rescue StandardError => e
-      render_error(error: "アイテムの作成中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを更新
   def update
-    begin
+    safe_database_operation do
       if @kpt_item.update(kpt_item_params)
-        render json: { success: true, message: "アイテムを更新しました" }, status: :ok
+        render_success(message: "アイテムを更新しました")
       else
-        render json: {
-          success: false,
-          error: "アイテムの更新に失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの更新に失敗しました")
       end
-    rescue StandardError => e
-      render_error(error: "アイテムの更新中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを削除
   def destroy
-    begin
+    safe_database_operation do
       if @kpt_item.destroy
-        render json: {
-          success: true,
-          message: "アイテムを削除しました"
-        }, status: :ok
+        render_success(message: "アイテムを削除しました")
       else
-        render json: {
-          success: false,
-          error: "アイテムの削除に失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの削除に失敗しました")
       end
-    rescue StandardError => e
-      render_error(error: "アイテムの削除中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを完了
   def complete
-    begin
+    safe_database_operation do
       if @kpt_item.update(status: "completed")
         item_data = format_kpt_item_detail(@kpt_item)
 
-        render json: {
-          success: true,
+        render_success(
           data: item_data,
           message: "アイテムを完了しました"
-        }, status: :ok
+        )
       else
-        render json: {
-          success: false,
-          error: "アイテムの完了に失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの完了に失敗しました")
       end
-    rescue StandardError => e
-      render_error(error: "アイテム完了処理中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを再オープン
   def reopen
-    begin
+    safe_database_operation do
       if @kpt_item.update(status: "reopened")
         item_data = format_kpt_item_detail(@kpt_item)
 
-        render json: {
-          success: true,
+        render_success(
           data: item_data,
           message: "アイテムを再オープンしました"
-        }, status: :ok
+        )
       else
-        render json: {
-          success: false,
-          error: "アイテムの再オープンに失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの再オープンに失敗しました")
       end
-    rescue StandardError => e
-      render_error(error: "アイテム再オープン処理中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムを移動
   def move
-    begin
+    safe_database_operation do
       new_kpt_session = current_user.kpt_sessions.find(params[:new_kpt_session_id])
       if @kpt_item.update(kpt_session_id: new_kpt_session.id)
         item_data = format_kpt_item_detail(@kpt_item)
 
-        render json: {
-          success: true,
+        render_success(
           data: item_data,
           message: "アイテムを移動しました"
-        }, status: :ok
+        )
       else
-        render json: {
-          success: false,
-          error: "アイテムの移動に失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムの移動に失敗しました")
       end
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {
-        success: false,
-        error: "セッションが見つかりません"
-      }, status: :not_found
-    rescue StandardError => e
-      render_error(error: "アイテムの移動中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムをコピー
   def copy
-    begin
+    safe_database_operation do
       new_kpt_session = current_user.kpt_sessions.find(params[:new_kpt_session_id])
       @kpt_item = @kpt_item.dup
       @kpt_item.kpt_session_id = new_kpt_session.id
 
-      puts "status: #{@kpt_item.status.inspect} (#{@kpt_item.status.class})"
-      puts "type: #{@kpt_item.type.inspect} (#{@kpt_item.type.class})"
-      unless @kpt_item.valid?
-        puts "Validation errors (valid?): #{@kpt_item.errors.full_messages.inspect}"
-      end
-
       if @kpt_item.save
         item_data = format_kpt_item_detail(@kpt_item)
 
-        render json: {
-          success: true,
+        render_success(
           data: item_data,
-          message: "アイテムをコピーしました"
-        }, status: :created
+          message: "アイテムをコピーしました",
+          status: :created
+        )
       else
-        render json: {
-          success: false,
-          error: "アイテムのコピーに失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
+        render_validation_error(@kpt_item, "アイテムのコピーに失敗しました")
       end
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {
-        success: false,
-        error: "セッションが見つかりません"
-      }, status: :not_found
-    rescue StandardError => e
-      render_error(error: "アイテムのコピー中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
   # アイテムに作業ログをリンク
   def link_work_log
-    begin
+    safe_database_operation do
       work_log = current_user.work_logs.find(params[:work_log_id])
       if @kpt_item.work_logs.include?(work_log)
-        render json: {
-          success: false,
-          error: "このアイテムには既にこの作業ログがリンクされています"
-        }, status: :unprocessable_entity
+        render_error(
+          error: "このアイテムには既にこの作業ログがリンクされています",
+          status: :unprocessable_entity
+        )
         return
       end
 
-      if @kpt_item.work_logs << work_log
-        item_data = format_kpt_item_detail(@kpt_item)
-
-        render json: {
-          success: true,
-          data: item_data,
-          message: "アイテムに作業ログをリンクしました"
-        }, status: :ok
-      else
-        render json: {
-          success: false,
-          error: "アイテムに作業ログのリンクに失敗しました",
-          details: @kpt_item.errors.full_messages
-        }, status: :unprocessable_entity
-      end
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {
-        success: false,
-        error: "作業ログが見つかりません"
-      }, status: :not_found
-    rescue StandardError => e
-      render_error(error: "アイテムに作業ログのリンク中にエラーが発生しました", status: :internal_server_error)
+      @kpt_item.work_logs << work_log
+      render_success(message: "作業ログをリンクしました")
     end
   end
 
-  # アイテムから作業ログをアンリンク
+  # アイテムから作業ログをリンク解除
   def unlink_work_log
-    begin
+    safe_database_operation do
       work_log = current_user.work_logs.find(params[:work_log_id])
-      if @kpt_item.work_logs.include?(work_log)
-        if @kpt_item.work_logs.delete(work_log)
-          item_data = format_kpt_item_detail(@kpt_item)
-
-          render json: {
-            success: true,
-            data: item_data,
-            message: "アイテムから作業ログをアンリンクしました"
-          }, status: :ok
-        else
-          render json: {
-            success: false,
-            error: "アイテムから作業ログのアンリンクに失敗しました",
-            details: @kpt_item.errors.full_messages
-          }, status: :unprocessable_entity
-        end
+      if @kpt_item.work_logs.delete(work_log)
+        render_success(message: "作業ログのリンクを解除しました")
       else
-        render json: {
-          success: false,
-          error: "このアイテムにはこの作業ログがリンクされていません"
-        }, status: :unprocessable_entity
+        render_error(
+          error: "作業ログのリンク解除に失敗しました",
+          status: :unprocessable_entity
+        )
       end
-    rescue ActiveRecord::RecordNotFound => e
-      render json: {
-        success: false,
-        error: "作業ログが見つかりません"
-      }, status: :not_found
-    rescue StandardError => e
-      render_error(error: "アイテムから作業ログのアンリンク中にエラーが発生しました", status: :internal_server_error)
     end
   end
 
-  # アイテム統計を取得
+  # 統計情報を取得
   def stats
-    begin
-      start_date = params[:start_date]&.to_date || 30.days.ago.to_date
-      end_date = params[:end_date]&.to_date || Date.current
+    safe_execute do
+      days = params[:days]&.to_i || 30
+      start_date = days.days.ago.to_date
+      
+      items = current_user.kpt_items.joins(:kpt_session)
+                          .where(kpt_sessions: { session_date: start_date..Date.current })
 
-      stats_data = KptItem.type_stats(current_user, start_date, end_date)
-
-      # 追加統計
-      additional_stats = {
-        period: {
-          start_date: start_date,
-          end_date: end_date
-        },
-        distribution: KptItem.impact_distribution(current_user),
-        popular_tags: KptItem.popular_tags(current_user, params[:type], 10),
-        emotion_trend: KptItem.emotion_trend(current_user, (end_date - start_date).to_i)
+      stats_data = {
+        total_items: items.count,
+        completed_items: items.completed.count,
+        completion_rate: items.count > 0 ? (items.completed.count.to_f / items.count * 100).round(2) : 0,
+        by_type: items.group(:type).count,
+        by_status: items.group(:status).count,
+        by_priority: items.group(:priority).count
       }
 
-      render json: {
-        success: true,
-        data: {
-          type_stats: stats_data,
-          **additional_stats
-        },
-        message: "アイテム統計を取得しました"
-      }, status: :ok
-    rescue StandardError => e
-      render_error(error: "統計データの取得に失敗しました", status: :internal_server_error)
+      render_success(
+        data: stats_data,
+        message: "#{days}日間の統計情報を取得しました"
+      )
     end
   end
 
-  # アイテム傾向分析を取得
+  # 傾向分析を取得
   def trends
-    begin
+    safe_execute do
       days = params[:days]&.to_i || 30
-      days = [ days, 365 ].min # 最大1年
-      days = 7 if days < 7    # 最小1週間
+      trend_data = calculate_completion_trend(days)
 
-      trends_data = {
-        emotion_trend: KptItem.emotion_trend(current_user, days),
-        impact_distribution: KptItem.impact_distribution(current_user),
-        completion_trend: calculate_completion_trend(days)
-      }
-
-      render json: {
-        success: true,
-        data: trends_data,
-        period_days: days,
+      render_success(
+        data: trend_data,
         message: "#{days}日間の傾向分析を取得しました"
-      }, status: :ok
-    rescue StandardError => e
-      render_error(error: "傾向分析の取得に失敗しました", status: :internal_server_error)
+      )
     end
   end
 
@@ -398,20 +231,16 @@ class Api::V1::KptItemsController < ApplicationController
   # @description 選択されたGitHub IssuesをKPTアイテムとして一括保存
   # @return [JSON] 保存結果（success, error）
   def import_github
-    begin
-      puts "=== import_github started ==="
+    safe_database_operation do
       items_params = import_github_params
-      puts "items_params: #{items_params.inspect}"
 
       kpt_session = current_user.kpt_sessions.last
       unless kpt_session
-        puts "Creating new KPT session"
         kpt_session = current_user.kpt_sessions.create!(
           session_date: Date.current,
           title: "GitHub Issues Import - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
         )
       end
-      puts "Using KPT session: #{kpt_session.inspect}"
 
       success_count = 0
       error_count = 0
@@ -429,10 +258,8 @@ class Api::V1::KptItemsController < ApplicationController
         when "cancelled", "rejected"
           "cancelled"
         else
-          puts "Unknown status: #{item_params[:status]}, defaulting to 'open'"
           "open"
         end
-        puts "[#{idx}] Converted status: #{status}"
 
         kpt_item = KptItem.new(
           kpt_session_id: kpt_session.id,
@@ -445,44 +272,35 @@ class Api::V1::KptItemsController < ApplicationController
           external_number: item_params[:external_number],
           external_url: item_params[:external_url]
         )
-        puts "[#{idx}] Created KPT item: #{kpt_item.inspect}"
-        puts "[#{idx}] kpt_item.status: '#{kpt_item.status}' (#{kpt_item.status.class})"
-        puts "[#{idx}] Allowed STATUSES: #{KptItem::STATUSES.inspect}"
 
         if kpt_item.valid?
           kpt_item.save!
-          puts "[#{idx}] KPT item saved successfully"
           success_count += 1
         else
-          puts "[#{idx}] Validation errors: #{kpt_item.errors.full_messages}"
           error_count += 1
           error_messages << "[#{idx}] #{kpt_item.errors.full_messages.join(', ')}"
         end
       end
 
       if error_count == 0
-        render json: {
-          success: true,
+        render_success(
           message: "GitHub Issuesをインポートしました (#{success_count}件)"
-        }, status: :ok
+        )
       else
-        render json: {
-          success: false,
-          message: "一部のGitHub Issueのインポートに失敗しました",
-          imported_count: success_count,
-          failed_count: error_count,
-          errors: error_messages
-        }, status: :unprocessable_entity
+        render_error(
+          error: "一部のGitHub Issueのインポートに失敗しました",
+          status: :unprocessable_entity,
+          details: {
+            imported_count: success_count,
+            failed_count: error_count,
+            errors: error_messages
+          }
+        )
       end
-    rescue StandardError => e
-      puts "Error in import_github: #{e.class} - #{e.message}"
-      puts e.backtrace.join("\n")
-      render json: {
-        success: false,
-        error: "GitHub Issueのインポート中にエラーが発生しました: #{e.message}"
-      }, status: :internal_server_error
     end
   end
+
+  private
 
   # アイテムサマリーを整形
   def format_kpt_item_summary(item)
@@ -539,20 +357,9 @@ class Api::V1::KptItemsController < ApplicationController
     }
   end
 
-  def render_error(error:, status:)
-    render json: {
-      success: false,
-      error: error
-    }, status: status
-  end
-
-  private
-
   # KPTアイテムをIDで検索
   def set_kpt_item
     @kpt_item = current_user.kpt_items.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render json: { success: false, error: "指定されたIDのKPTアイテムが見つかりません" }, status: :not_found
   end
 
   # アイテムのstrong parameter
@@ -568,21 +375,14 @@ class Api::V1::KptItemsController < ApplicationController
 
   # GitHubインポートのstrong parameter
   def import_github_params
-    puts "=== import_github_params called ==="
     items = params.require(:items)
-    puts "items.class: #{items.class}"
-    items.each_with_index do |item, idx|
-      puts "item[#{idx}].class: #{item.class}, item: #{item.inspect}"
-    end
     items.map do |item|
-      permitted = if item.is_a?(ActionController::Parameters)
+      if item.is_a?(ActionController::Parameters)
         item.permit(:type, :content, :status, :priority, :notes, :external_repo, :external_number, :external_url).to_h
       else
         # すでにHashならそのまま
         item.slice("type", "content", "status", "priority", "notes", "external_repo", "external_number", "external_url")
       end
-      puts "permitted: #{permitted.inspect}"
-      permitted
     end
   end
 end
