@@ -21,6 +21,7 @@ gem "solid_queue"
 gem "solid_cable"
 
 gem "faraday"
+gem "faraday-multipart"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -49,8 +50,8 @@ gem "redis"
 
 gem 'ruby-openai', '~> 7.0'
 
-gem 'faraday'
-
+# Slack通知
+gem "slack-notifier"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem

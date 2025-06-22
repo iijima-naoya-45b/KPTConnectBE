@@ -144,8 +144,6 @@ Rails.application.routes.draw do
       get "github/issues", to: "github#issues"
       get "github/pull_requests", to: "github#pull_requests"
 
-      resources :kpt_reviews, only: [:create, :index, :update, :destroy]
-
       resources :goals do
         collection do
           post :suggest

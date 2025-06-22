@@ -565,10 +565,7 @@ class Api::V1::Calendar::ReflectionsController < ApplicationController
 
     {
       total_count: items.count,
-      average_per_session: sessions.count > 0 ? (items.count.to_f / sessions.count).round(1) : 0,
-      priority_distribution: items.group(:priority).count,
-      status_distribution: items.group(:status).count,
-      completion_rate: items.count > 0 ? (items.where(status: "completed").count.to_f / items.count * 100).round(1) : 0
+      average_per_session: sessions.count > 0 ? (items.count.to_f / sessions.count).round(1) : 0
     }
   end
 

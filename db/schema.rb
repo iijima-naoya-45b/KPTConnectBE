@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_23_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -146,8 +146,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
     t.uuid "kpt_session_id", null: false
     t.string "type", limit: 10, null: false
     t.text "content", null: false
-    t.string "priority", limit: 10, default: "medium"
-    t.string "status", limit: 20, default: "open"
     t.date "due_date"
     t.string "assigned_to", limit: 100
     t.integer "emotion_score"
@@ -164,13 +162,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
     t.index ["emotion_score"], name: "index_kpt_items_on_emotion_score"
     t.index ["impact_score"], name: "index_kpt_items_on_impact_score"
     t.index ["kpt_session_id"], name: "index_kpt_items_on_kpt_session_id"
-    t.index ["priority"], name: "index_kpt_items_on_priority"
-    t.index ["status"], name: "index_kpt_items_on_status"
     t.index ["tags"], name: "index_kpt_items_on_tags", using: :gin
     t.index ["type"], name: "index_kpt_items_on_type"
     t.check_constraint "emotion_score >= 1 AND emotion_score <= 5", name: "check_kpt_items_emotion_score"
     t.check_constraint "impact_score >= 1 AND impact_score <= 5", name: "check_kpt_items_impact_score"
-    t.check_constraint "priority::text = ANY (ARRAY['low'::character varying, 'medium'::character varying, 'high'::character varying]::text[])", name: "check_kpt_items_priority"
     t.check_constraint "type::text = ANY (ARRAY['keep'::character varying, 'problem'::character varying, 'try'::character varying]::text[])", name: "check_kpt_items_type"
   end
 
@@ -191,7 +186,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
     t.string "title", limit: 200, null: false
     t.text "description"
     t.date "session_date", default: -> { "CURRENT_DATE" }, null: false
-    t.string "status", limit: 20, default: "draft"
     t.text "tags", default: [], array: true
     t.boolean "is_template", default: false
     t.string "template_name", limit: 100
@@ -201,10 +195,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
     t.index ["completed_at"], name: "index_kpt_sessions_on_completed_at"
     t.index ["is_template"], name: "index_kpt_sessions_on_is_template"
     t.index ["session_date"], name: "index_kpt_sessions_on_session_date"
-    t.index ["status"], name: "index_kpt_sessions_on_status"
     t.index ["tags"], name: "index_kpt_sessions_on_tags", using: :gin
     t.index ["user_id"], name: "index_kpt_sessions_on_user_id"
-    t.check_constraint "status::text = ANY (ARRAY['draft'::character varying, 'in_progress'::character varying, 'completed'::character varying, 'archived'::character varying]::text[])", name: "check_kpt_sessions_status"
+  end
+
+  create_table "notifications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title"
+    t.text "message"
+    t.string "notification_type"
+    t.boolean "is_read"
+    t.datetime "read_at"
+    t.string "priority"
+    t.string "action_url"
+    t.jsonb "metadata"
+    t.datetime "expires_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "payment_methods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -339,6 +347,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
     t.datetime "email_verified_at", precision: nil
     t.datetime "last_login_at", precision: nil
     t.datetime "deleted_at"
+    t.boolean "slack_notification_enabled", default: false, null: false
+    t.string "slack_webhook_url"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
@@ -405,6 +415,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_21_101124) do
   add_foreign_key "kpt_items", "kpt_sessions"
   add_foreign_key "kpt_reviews", "users"
   add_foreign_key "kpt_sessions", "users"
+  add_foreign_key "notifications", "users"
   add_foreign_key "payment_methods", "users"
   add_foreign_key "payments", "subscriptions"
   add_foreign_key "payments", "users"

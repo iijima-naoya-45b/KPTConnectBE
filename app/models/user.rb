@@ -52,7 +52,7 @@ class User < ApplicationRecord
   # フルネームまたは表示名を取得
   # @return [String] 表示用名前
   def display_name
-    name.presence || username.presence || email.split("@").first
+    email.split("@").first
   end
 
   # 管理者かどうかをチェック
@@ -197,6 +197,22 @@ class User < ApplicationRecord
     setting = user_settings.find_or_initialize_by(setting_key: key)
     setting.setting_value = value.to_s
     setting.save!
+  end
+
+  # Slack通知が有効かどうかをチェック
+  # @return [Boolean] Slack通知の有効状態
+  def slack_notification_enabled?
+    slack_notification_enabled
+  end
+
+  # Slack通知設定を更新
+  # @param [Boolean] enabled 有効状態
+  # @param [String] webhook_url Webhook URL
+  def update_slack_notification_settings(enabled:, webhook_url: nil)
+    update(
+      slack_notification_enabled: enabled,
+      slack_webhook_url: webhook_url
+    )
   end
 
   # 現在のサブスクリプションを取得
