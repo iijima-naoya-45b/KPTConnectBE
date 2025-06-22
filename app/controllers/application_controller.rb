@@ -11,6 +11,8 @@
 # - require_login ログイン必須チェック（既存互換性のため）
 class ApplicationController < ActionController::API
   include ActionController::Cookies
+  include ApiResponse
+  include ErrorHandler
 
   before_action :set_current_user_from_cookie
 
@@ -70,11 +72,7 @@ class ApplicationController < ActionController::API
   def require_login
     authenticate_user!
   rescue AuthenticationError
-    render json: {
-      success: false,
-      error: "Unauthorized",
-      message: "ログインが必要です"
-    }, status: :unauthorized
+    render_unauthorized("ログインが必要です")
   end
 
   # プロプラン権限をチェック
@@ -138,20 +136,12 @@ class ApplicationController < ActionController::API
 
   # 認証エラーハンドリング
   def handle_authentication_error(exception)
-    render json: {
-      success: false,
-      error: "Unauthorized",
-      message: exception.message
-    }, status: :unauthorized
+    render_unauthorized(exception.message)
   end
 
   # 認可エラーハンドリング
   def handle_authorization_error(exception)
-    render json: {
-      success: false,
-      error: "Forbidden",
-      message: exception.message
-    }, status: :forbidden
+    render_forbidden(exception.message)
   end
 
   # リソース未発見エラーハンドリング
