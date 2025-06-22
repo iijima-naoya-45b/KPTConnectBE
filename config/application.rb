@@ -18,5 +18,14 @@ module KptBe
     config.autoload_lib(ignore: %w[assets tasks])
 
     config.api_only = true
+
+    # Active Job設定
+    config.active_job.queue_adapter = :async
+    
+    # 開発環境でのログ設定
+    if Rails.env.development?
+      config.log_level = :debug
+      config.active_job.logger = Rails.logger
+    end
   end
 end

@@ -13,8 +13,9 @@ class Api::V1::UsersController < ApplicationController
       render json: {
         id: current_user.id.to_s,
         email: current_user.email,
-        username: current_user.username,
-        provider: current_user.provider
+        provider: current_user.provider,
+        slack_notification_enabled: current_user.slack_notification_enabled,
+        slack_webhook_url: current_user.slack_webhook_url
       }, status: :ok
     else
       render json: { error: "Unauthorized" }, status: :unauthorized
@@ -28,11 +29,8 @@ class Api::V1::UsersController < ApplicationController
   def update
     begin
       if current_user.update(user_params)
-        user_data = format_user_detail(current_user)
-
         render json: {
           success: true,
-          data: user_data,
           message: "ユーザー情報を更新しました"
         }, status: :ok
       else
@@ -265,12 +263,13 @@ class Api::V1::UsersController < ApplicationController
 
   private
 
-  # ユーザーパラメーターを許可
+  # 許可されたユーザーパラメータ
+  # @return [Hash] 許可されたパラメータ
   def user_params
-    params.require(:user).permit(:name, :username, :timezone, :language, :avatar_url)
+    params.require(:user).permit(:timezone, :language, :avatar_url, :slack_notification_enabled, :slack_webhook_url)
   end
 
-  # 設定パラメーターを許可
+  # 許可された設定パラメータ
   def settings_params
     params.require(:settings).permit(
       :theme, :notifications_enabled, :email_notifications, :weekly_summary,
@@ -286,8 +285,6 @@ class Api::V1::UsersController < ApplicationController
     {
       id: user.id,
       email: user.email,
-      username: user.username,
-      name: user.name,
       display_name: user.display_name,
       avatar_url: user.avatar_url,
       provider: user.provider,
@@ -295,7 +292,8 @@ class Api::V1::UsersController < ApplicationController
       language: user.language,
       is_active: user.is_active,
       admin: user.admin?,
-      pro_plan: user.pro_plan?,
+      # pro_plan: user.pro_plan?, # 一時的にコメントアウト
+      slack_webhook_url: user.slack_webhook_url,
       email_verified_at: user.email_verified_at,
       last_login_at: user.last_login_at,
       created_at: user.created_at,

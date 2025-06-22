@@ -3,7 +3,7 @@
 # 通知APIコントローラー
 class Api::V1::NotificationsController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_notification, only: [ :show, :update, :destroy, :read ]
+  before_action :set_notification, only: [ :show, :destroy, :read ]
 
   # 通知一覧を取得
   def index

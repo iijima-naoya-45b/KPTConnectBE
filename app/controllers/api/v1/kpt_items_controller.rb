@@ -118,14 +118,8 @@ class Api::V1::KptItemsController < ApplicationController
   # アイテムを更新
   def update
     begin
-      if @kpt_item.update(item_params)
-        item_data = format_kpt_item_detail(@kpt_item)
-
-        render json: {
-          success: true,
-          data: item_data,
-          message: "アイテムを更新しました"
-        }, status: :ok
+      if @kpt_item.update(kpt_item_params)
+        render json: { success: true, message: "アイテムを更新しました" }, status: :ok
       else
         render json: {
           success: false,
@@ -386,8 +380,7 @@ class Api::V1::KptItemsController < ApplicationController
       trends_data = {
         emotion_trend: KptItem.emotion_trend(current_user, days),
         impact_distribution: KptItem.impact_distribution(current_user),
-        completion_trend: calculate_completion_trend(days),
-        priority_distribution: calculate_priority_distribution(days)
+        completion_trend: calculate_completion_trend(days)
       }
 
       render json: {
@@ -491,47 +484,6 @@ class Api::V1::KptItemsController < ApplicationController
     end
   end
 
-  private
-
-  # KPTアイテムを設定
-  def set_kpt_item
-    @kpt_item = current_user.kpt_items.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render json: {
-      success: false,
-      error: "アイテムが見つかりません"
-    }, status: :not_found
-  end
-
-  # アイテムパラメーターを許可
-  def item_params
-    params.require(:item).permit(
-      :kpt_session_id, :type, :content, :priority, :status, :due_date, :start_date, :end_date, :assigned_to,
-      :emotion_score, :impact_score, :notes,
-      tags: []
-    )
-  end
-
-  # GitHub Issuesインポート用パラメーターを許可
-  def import_github_params
-    puts "=== import_github_params called ==="
-    items = params.require(:items)
-    puts "items.class: #{items.class}"
-    items.each_with_index do |item, idx|
-      puts "item[#{idx}].class: #{item.class}, item: #{item.inspect}"
-    end
-    items.map do |item|
-      permitted = if item.is_a?(ActionController::Parameters)
-        item.permit(:type, :content, :status, :priority, :notes, :external_repo, :external_number, :external_url).to_h
-      else
-        # すでにHashならそのまま
-        item.slice("type", "content", "status", "priority", "notes", "external_repo", "external_number", "external_url")
-      end
-      puts "permitted: #{permitted.inspect}"
-      permitted
-    end
-  end
-
   # アイテムサマリーを整形
   def format_kpt_item_summary(item)
     {
@@ -556,53 +508,6 @@ class Api::V1::KptItemsController < ApplicationController
       created_at: item.created_at,
       updated_at: item.updated_at,
       completed_at: item.completed_at
-    }
-  end
-
-  # アイテム詳細を整形
-  def format_kpt_item_detail(item)
-    {
-      id: item.id,
-      type: item.type,
-      type_name_ja: item.type_name_ja,
-      content: item.content,
-      priority: item.priority,
-      priority_name_ja: item.priority_name_ja,
-      status: item.status,
-      status_display: item.status_display,
-      due_date: item.due_date,
-      start_date: item.start_date,
-      end_date: item.end_date,
-      assigned_to: item.assigned_to,
-      emotion_score: item.emotion_score,
-      impact_score: item.impact_score,
-      tags: item.tags,
-      notes: item.notes,
-      importance_score: item.importance_score,
-      is_overdue: item.overdue?,
-      is_due_soon: item.due_soon?,
-      session: {
-        id: item.kpt_session.id,
-        title: item.kpt_session.title,
-        description: item.kpt_session.description,
-        session_date: item.kpt_session.session_date,
-        status: item.kpt_session.status
-      },
-      similar_items: item.similar_items.map { |similar| format_similar_item(similar) },
-      created_at: item.created_at,
-      updated_at: item.updated_at,
-      completed_at: item.completed_at
-    }
-  end
-
-  # 類似アイテムを整形
-  def format_similar_item(item)
-    {
-      id: item.id,
-      content: item.content.truncate(50),
-      type: item.type,
-      session_title: item.kpt_session.title,
-      created_at: item.created_at
     }
   end
 
@@ -634,28 +539,50 @@ class Api::V1::KptItemsController < ApplicationController
     }
   end
 
-  # 優先度分布を計算
-  def calculate_priority_distribution(days)
-    start_date = days.days.ago.to_date
-    items = current_user.kpt_items.joins(:kpt_session)
-                        .where(kpt_sessions: { session_date: start_date..Date.current })
-
-    distribution = items.group(:priority).group(:status).count
-
-    {
-      distribution: distribution,
-      summary: {
-        high_priority: items.high_priority.count,
-        medium_priority: items.where(priority: "medium").count,
-        low_priority: items.where(priority: "low").count
-      }
-    }
-  end
-
   def render_error(error:, status:)
     render json: {
       success: false,
       error: error
     }, status: status
+  end
+
+  private
+
+  # KPTアイテムをIDで検索
+  def set_kpt_item
+    @kpt_item = current_user.kpt_items.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { success: false, error: "指定されたIDのKPTアイテムが見つかりません" }, status: :not_found
+  end
+
+  # アイテムのstrong parameter
+  def kpt_item_params
+    params.require(:kpt_item).permit(
+      :type,
+      :status,
+      :content,
+      :priority,
+      :notes
+    )
+  end
+
+  # GitHubインポートのstrong parameter
+  def import_github_params
+    puts "=== import_github_params called ==="
+    items = params.require(:items)
+    puts "items.class: #{items.class}"
+    items.each_with_index do |item, idx|
+      puts "item[#{idx}].class: #{item.class}, item: #{item.inspect}"
+    end
+    items.map do |item|
+      permitted = if item.is_a?(ActionController::Parameters)
+        item.permit(:type, :content, :status, :priority, :notes, :external_repo, :external_number, :external_url).to_h
+      else
+        # すでにHashならそのまま
+        item.slice("type", "content", "status", "priority", "notes", "external_repo", "external_number", "external_url")
+      end
+      puts "permitted: #{permitted.inspect}"
+      permitted
+    end
   end
 end
