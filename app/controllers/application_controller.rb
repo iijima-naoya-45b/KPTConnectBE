@@ -72,7 +72,7 @@ class ApplicationController < ActionController::API
   def require_login
     authenticate_user!
   rescue AuthenticationError
-    render_unauthorized("ログインが必要です")
+    render_unauthorized(message: "ログインが必要です")
   end
 
   # プロプラン権限をチェック
@@ -136,12 +136,12 @@ class ApplicationController < ActionController::API
 
   # 認証エラーハンドリング
   def handle_authentication_error(exception)
-    render_unauthorized(exception.message)
+    render_unauthorized(message: exception.message)
   end
 
   # 認可エラーハンドリング
   def handle_authorization_error(exception)
-    render_forbidden(exception.message)
+    render_forbidden(message: exception.message)
   end
 
   # リソース未発見エラーハンドリング
