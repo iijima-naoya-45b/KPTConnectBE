@@ -1,8 +1,6 @@
 require 'slack-ruby-client'
 
 class Api::V1::SlackController < ApplicationController
-  # CSRF保護を無効化（Slackからのリクエストのため）
-  skip_before_action :verify_authenticity_token
   before_action :verify_slack_request
 
   # POST /api/v1/slack/commands
