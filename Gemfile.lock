@@ -75,6 +75,12 @@ GEM
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
     ast (2.4.3)
+    async (2.25.0)
+      console (~> 1.29)
+      fiber-annotation
+      io-event (~> 1.11)
+      metrics (~> 0.12)
+      traces (~> 0.15)
     base64 (0.2.0)
     bcrypt (3.1.20)
     bcrypt_pbkdf (1.1.1)
@@ -89,18 +95,41 @@ GEM
     builder (3.3.0)
     childprocess (5.1.0)
       logger (~> 1.5)
+    chronic (0.10.2)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.0)
+    console (1.31.0)
+      fiber-annotation
+      fiber-local (~> 1.1)
+      json
     crass (1.0.6)
     date (3.4.1)
     debug (1.10.0)
       irb (~> 1.10)
       reline (>= 0.3.8)
+    declarative (0.0.20)
     dotenv (3.1.8)
     dotenv-rails (3.1.8)
       dotenv (= 3.1.8)
       railties (>= 6.1)
     drb (2.2.1)
+    dry-core (1.1.0)
+      concurrent-ruby (~> 1.0)
+      logger
+      zeitwerk (~> 2.6)
+    dry-inflector (1.2.0)
+    dry-logic (1.6.0)
+      bigdecimal
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.1)
+      zeitwerk (~> 2.6)
+    dry-types (1.8.3)
+      bigdecimal (~> 3.0)
+      concurrent-ruby (~> 1.0)
+      dry-core (~> 1.0)
+      dry-inflector (~> 1.0)
+      dry-logic (~> 1.4)
+      zeitwerk (~> 2.6)
     ed25519 (1.3.0)
     erubi (1.13.1)
     et-orbi (1.2.11)
@@ -110,19 +139,43 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
+    faraday-mashify (1.0.0)
+      faraday (~> 2.0)
+      hashie
     faraday-multipart (1.1.0)
       multipart-post (~> 2.0)
     faraday-net_http (3.4.0)
       net-http (>= 0.5.0)
+    fiber-annotation (0.2.0)
+    fiber-local (1.1.0)
+      fiber-storage
+    fiber-storage (1.0.1)
+    foreman (0.88.1)
     fugit (1.11.1)
       et-orbi (~> 1, >= 1.2.11)
       raabro (~> 1.4)
+    gli (2.22.2)
+      ostruct
     globalid (1.2.1)
       activesupport (>= 6.1)
+    grape (2.4.0)
+      activesupport (>= 6.1)
+      dry-types (>= 1.1)
+      mustermann-grape (~> 1.1.0)
+      rack (>= 2)
+      zeitwerk
+    grape-roar (0.4.1)
+      grape
+      multi_json
+      roar (~> 1.1.0)
+    grape-swagger (2.1.2)
+      grape (>= 1.7, < 3.0)
+      rack-test (~> 2)
     hashie (5.0.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     io-console (0.8.0)
+    io-event (1.11.0)
     irb (1.15.2)
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
@@ -141,6 +194,10 @@ GEM
       sshkit (>= 1.23.0, < 2.0)
       thor (~> 1.3)
       zeitwerk (>= 2.6.18, < 3.0)
+    kaminari-core (1.2.2)
+    kaminari-grape (1.0.1)
+      grape
+      kaminari-core (~> 1.0)
     language_server-protocol (3.17.0.4)
     launchy (3.1.1)
       addressable (~> 2.8)
@@ -159,12 +216,18 @@ GEM
       net-pop
       net-smtp
     marcel (1.0.4)
+    metrics (0.12.2)
     mini_mime (1.1.5)
     minitest (5.25.5)
     msgpack (1.8.0)
+    multi_json (1.15.0)
     multi_xml (0.7.1)
       bigdecimal (~> 3.1)
     multipart-post (2.4.1)
+    mustermann (3.0.3)
+      ruby2_keywords (~> 0.0.1)
+    mustermann-grape (1.1.0)
+      mustermann (>= 1.0.0)
     net-http (0.6.0)
       uri
     net-imap (0.5.6)
@@ -232,6 +295,9 @@ GEM
     rack (3.1.12)
     rack-cors (2.0.2)
       rack (>= 2.0.0)
+    rack-rewrite (1.5.1)
+    rack-server-pages (0.2.0)
+      rack
     rack-session (2.1.0)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -279,6 +345,12 @@ GEM
     regexp_parser (2.10.0)
     reline (0.6.1)
       io-console (~> 0.5)
+    representable (3.2.0)
+      declarative (< 0.1.0)
+      trailblazer-option (>= 0.1.1, < 0.2.0)
+      uber (< 0.2.0)
+    roar (1.1.1)
+      representable (~> 3.0)
     rubocop (1.75.2)
       json (~> 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -312,8 +384,27 @@ GEM
       faraday (>= 1)
       faraday-multipart (>= 1)
     ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     slack-notifier (2.4.0)
+    slack-ruby-bot-server (2.1.1)
+      async
+      foreman
+      grape
+      grape-roar (>= 0.4.0)
+      grape-swagger
+      kaminari-grape
+      rack-cors
+      rack-rewrite
+      rack-server-pages
+      slack-ruby-client
+    slack-ruby-client (2.6.0)
+      faraday (>= 2.0)
+      faraday-mashify
+      faraday-multipart
+      gli
+      hashie
+      logger
     snaky_hash (2.0.1)
       hashie
       version_gem (~> 1.1, >= 1.1.1)
@@ -355,8 +446,11 @@ GEM
     thruster (0.1.12-x86_64-darwin)
     thruster (0.1.12-x86_64-linux)
     timeout (0.4.3)
+    traces (0.15.2)
+    trailblazer-option (0.1.2)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uber (0.1.0)
     unicode-display_width (3.1.4)
       unicode-emoji (~> 4.0, >= 4.0.4)
     unicode-emoji (4.0.4)
@@ -367,6 +461,8 @@ GEM
       base64
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.5)
+    whenever (1.0.0)
+      chronic (>= 0.6.3)
     zeitwerk (2.7.2)
 
 PLATFORMS
@@ -398,6 +494,8 @@ DEPENDENCIES
   rubocop-rails-omakase
   ruby-openai (~> 7.0)
   slack-notifier
+  slack-ruby-bot-server
+  slack-ruby-client
   solid_cable
   solid_cache
   solid_queue
@@ -405,6 +503,7 @@ DEPENDENCIES
   sorcery-jwt
   thruster
   tzinfo-data
+  whenever
 
 BUNDLED WITH
    2.6.7
