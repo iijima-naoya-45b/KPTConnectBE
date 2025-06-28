@@ -57,6 +57,7 @@ gem "slack-notifier"
 gem 'slack-ruby-client'
 gem 'slack-ruby-bot-server'
 gem 'pagy'
+gem 'pagy_cursor'
 
 # 定期実行（cron jobs）
 gem 'whenever', require: false

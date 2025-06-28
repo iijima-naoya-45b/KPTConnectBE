@@ -276,6 +276,9 @@ GEM
       version_gem (~> 1.1)
     ostruct (0.6.1)
     pagy (9.3.4)
+    pagy_cursor (0.2.0)
+      activerecord (>= 5)
+      pagy
     parallel (1.26.3)
     parser (3.3.7.4)
       ast (~> 2.4.1)
@@ -488,6 +491,7 @@ DEPENDENCIES
   kamal
   letter_opener
   pagy
+  pagy_cursor
   pg (~> 1.1)
   puma (>= 5.0)
   rack-cors
