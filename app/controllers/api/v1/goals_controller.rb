@@ -2,7 +2,7 @@ require 'openai'
 
 class Api::V1::GoalsController < ApplicationController
     before_action :authenticate_user! # devise等を利用の場合
-    before_action :set_goal, only: [:show, :update, :destroy]
+    before_action :set_goal, only: [:show, :update, :destroy, :update_action_plan_progress]
   
     # GET /api/v1/goals
     def index
@@ -41,6 +41,22 @@ class Api::V1::GoalsController < ApplicationController
     def destroy
       @goal.destroy
       head :no_content
+    end
+
+    # PATCH /api/v1/goals/:id/action_plans/:action_id
+    def update_action_plan_progress
+      action_id = params[:action_id]
+      progress = params[:progress].to_i
+      
+      if @goal.update_action_plan_progress(action_id, progress)
+        render json: { 
+          message: 'アクションプランの進捗が更新されました',
+          goal: @goal,
+          action_plan_progress: @goal.action_plan_overall_progress
+        }
+      else
+        render json: { errors: ['アクションプランの更新に失敗しました'] }, status: :unprocessable_entity
+      end
     end
 
     # POST /api/v1/goals/suggest
