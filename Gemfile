@@ -53,6 +53,13 @@ gem 'ruby-openai', '~> 7.0'
 # Slack通知
 gem "slack-notifier"
 
+# Slack integration
+gem 'slack-ruby-client'
+gem 'slack-ruby-bot-server'
+
+# 定期実行（cron jobs）
+gem 'whenever', require: false
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

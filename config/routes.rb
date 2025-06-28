@@ -148,10 +148,17 @@ Rails.application.routes.draw do
         collection do
           post :suggest
         end
+        member do
+          patch 'action_plans/:action_id', to: 'goals#update_action_plan_progress', as: 'update_action_plan'
+        end
       end
 
       # お問い合わせ
       resources :contacts, only: [:create]
+
+      # Slack integration
+      post 'slack/commands', to: 'slack#commands'
+      post 'slack/interactive', to: 'slack#interactive'
     end
   end
 end

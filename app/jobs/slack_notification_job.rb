@@ -1,34 +1,23 @@
+require 'openai'
+
 class SlackNotificationJob < ApplicationJob
   queue_as :default
 
   def perform(kpt_session_id)
-    Rails.logger.info "SlackNotificationJob開始: KPT Session ID: #{kpt_session_id}"
-    Rails.logger.info "SlackNotificationJob: 現在のスレッド: #{Thread.current.object_id}"
-    
     kpt_session = KptSession.find_by(id: kpt_session_id)
-    unless kpt_session
-      Rails.logger.error "SlackNotificationJob: KPT Sessionが見つかりません。ID: #{kpt_session_id}"
-      return
-    end
+    return unless kpt_session
 
     user = kpt_session.user
-    unless user
-      Rails.logger.error "SlackNotificationJob: ユーザーが見つかりません。KPT Session ID: #{kpt_session_id}"
-      return
-    end
-
-    Rails.logger.info "SlackNotificationJob: ユーザー情報確認 - ID: #{user.id}, Email: #{user.email}"
-    Rails.logger.info "SlackNotificationJob: Slack通知設定 - enabled: #{user.slack_notification_enabled?}, webhook_url: #{user.slack_webhook_url.present?}"
+    return unless user
 
     unless user.slack_notification_enabled? && user.slack_webhook_url.present?
-      Rails.logger.info "SlackNotificationJob: Slack通知が無効またはWebhook URLが設定されていません"
-      Rails.logger.info "SlackNotificationJob: enabled: #{user.slack_notification_enabled?}, webhook_url: #{user.slack_webhook_url}"
       return
     end
 
+    # AIリアクションを生成
+    ai_reaction = generate_ai_reaction(kpt_session)
+
     begin
-      Rails.logger.info "SlackNotificationJob: Slack通知送信開始"
-      
       # HTTPクライアントを使用してSlack WebhookにPOST
       uri = URI(user.slack_webhook_url)
       http = Net::HTTP.new(uri.host, uri.port)
@@ -38,32 +27,112 @@ class SlackNotificationJob < ApplicationJob
 
       request = Net::HTTP::Post.new(uri)
       request['Content-Type'] = 'application/json'
-      request.body = build_rich_slack_message(kpt_session, user).to_json
-
-      Rails.logger.info "SlackNotificationJob: リクエスト送信 - URL: #{uri.host}, Body size: #{request.body.length}"
+      request.body = build_rich_slack_message(kpt_session, user, ai_reaction).to_json
 
       response = http.request(request)
-
-      if response.is_a?(Net::HTTPSuccess)
-        Rails.logger.info "SlackNotificationJob: 通知送信成功 - Response: #{response.code}"
-        Rails.logger.info "SlackNotificationJob: Response body: #{response.body}"
-      else
-        Rails.logger.error "Slack通知の送信に失敗しました。 KPT Session ID: #{kpt_session_id}, User ID: #{user.id}, Response: #{response.code} #{response.body}"
-      end
     rescue => e
-      Rails.logger.error "Slack通知の送信に失敗しました。 KPT Session ID: #{kpt_session_id}, User ID: #{user.id}, Error: #{e.message}"
-      Rails.logger.error "SlackNotificationJob: エラーバックトレース: #{e.backtrace.join("\n")}"
+      # エラーは静かに処理
     end
   end
 
   private
 
-  def build_rich_slack_message(kpt_session, user)
+  def generate_ai_reaction(kpt_session)
+    # OpenAI API KEYが設定されていない場合はスキップ
+    unless ENV['OPENAI_API_KEY'].present?
+      return get_fallback_message(kpt_session)
+    end
+
+    begin
+      prompt = create_ai_reaction_prompt(kpt_session)
+      
+      client = OpenAI::Client.new(access_token: ENV['OPENAI_API_KEY'], request_timeout: 60)
+      response = client.chat(
+        parameters: {
+          model: "gpt-4o-mini", # コスト効率の良いモデルを使用
+          messages: [
+            { 
+              role: "system", 
+              content: "あなたは経験豊富なメンターです。ユーザーの1日の振り返りに対して、温かく建設的なフィードバックを提供してください。" 
+            },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 500 # Slack投稿に適した長さに制限
+        }
+      )
+
+      content = response.dig("choices", 0, "message", "content")
+      
+      if content.present?
+        return content.strip
+      else
+        return get_fallback_message(kpt_session)
+      end
+
+    rescue => e
+      return get_fallback_message(kpt_session)
+    end
+  end
+
+  def get_fallback_message(kpt_session)
+    keep_count = kpt_session.kpt_items.where(type: 'keep').count
+    problem_count = kpt_session.kpt_items.where(type: 'problem').count
+    try_count = kpt_session.kpt_items.where(type: 'try').count
+    total_count = keep_count + problem_count + try_count
+
+    # KPTの内容に応じたフォールバックメッセージを生成
+    if total_count == 0
+      "今日も振り返りお疲れさまでした！ 🌟 明日も一歩ずつ前進していきましょう！"
+    elsif keep_count > 0 && problem_count == 0 && try_count == 0
+      "素晴らしいKeep項目ですね！ ✨ 良いことを継続する姿勢が成長につながります。明日も頑張りましょう！"
+    elsif problem_count > 0 && try_count == 0
+      "課題を発見できたのは素晴らしいですね！ 💡 次は解決策を考えて、Try項目も追加してみましょう。"
+    elsif try_count > 0 && keep_count == 0 && problem_count == 0
+      "新しい挑戦への意欲が素晴らしいです！ 🚀 ぜひ実行に移して、結果をKeepとして記録してくださいね。"
+    elsif keep_count > 0 && try_count > 0
+      "バランスの取れた振り返りですね！ 🎯 継続と挑戦の両立で、着実に成長されています。"
+    else
+      "今日も振り返りお疲れさまでした！ 📊 #{total_count}項目の気づきが明日への糧になりますね。継続していきましょう！"
+    end
+  end
+
+  def create_ai_reaction_prompt(kpt_session)
     keep_items = kpt_session.kpt_items.where(type: 'keep')
     problem_items = kpt_session.kpt_items.where(type: 'problem')
     try_items = kpt_session.kpt_items.where(type: 'try')
 
-    Rails.logger.info "SlackNotificationJob: メッセージ構築 - Keep: #{keep_items.count}, Problem: #{problem_items.count}, Try: #{try_items.count}"
+    session_date = kpt_session.session_date&.strftime('%Y年%m月%d日') || kpt_session.created_at.strftime('%Y年%m月%d日')
+
+    prompt = <<~PROMPT
+      以下は#{session_date}のKPT振り返りです。内容を分析して、温かく建設的なフィードバックを200文字以内で提供してください。
+
+      【セッション】#{kpt_session.title}
+      #{kpt_session.description.present? ? "【説明】#{kpt_session.description}" : ""}
+
+      【Keep（継続したいこと）】#{keep_items.count}件
+      #{keep_items.map { |item| "・#{item.content}" }.join("\n")}
+
+      【Problem（改善したいこと）】#{problem_items.count}件
+      #{problem_items.map { |item| "・#{item.content}" }.join("\n")}
+
+      【Try（試してみたいこと）】#{try_items.count}件
+      #{try_items.map { |item| "・#{item.content}" }.join("\n")}
+
+      フィードバックのポイント：
+      1. 良い点への評価と励まし
+      2. バランスの取れた視点での建設的なアドバイス
+      3. 明日への前向きなメッセージ
+      4. 親しみやすい絵文字を適度に使用
+
+      200文字以内で、温かく前向きなトーンでお願いします。
+    PROMPT
+  end
+
+  def build_rich_slack_message(kpt_session, user, ai_reaction = nil)
+    keep_items = kpt_session.kpt_items.where(type: 'keep')
+    problem_items = kpt_session.kpt_items.where(type: 'problem')
+    try_items = kpt_session.kpt_items.where(type: 'try')
 
     blocks = [
       # ヘッダー
@@ -77,16 +146,10 @@ class SlackNotificationJob < ApplicationJob
       # セッション基本情報
       {
         type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: "*📝 セッション名:*\n#{kpt_session.title}"
-          },
-          {
-            type: "mrkdwn",
-            text: "*📊 合計項目数:*\n#{kpt_session.kpt_items.count}件"
-          }
-        ]
+        text: {
+          type: "mrkdwn",
+          text: "*📝 セッション名:*\n#{kpt_session.title}"
+        }
       }
     ]
 
@@ -99,6 +162,19 @@ class SlackNotificationJob < ApplicationJob
           text: "*📋 セッション説明:*\n#{kpt_session.description}"
         }
       }
+    end
+
+    # AIリアクションを最初に表示（目立つ位置に配置）
+    if ai_reaction.present?
+      blocks << {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*🤖 AIメンターからのメッセージ:*\n> #{ai_reaction}"
+        }
+      }
+      # 区切り線を追加
+      blocks << { type: "divider" }
     end
 
     # Keep項目の詳細
