@@ -10,10 +10,16 @@ class Api::V1::GithubController < ApplicationController
   # @return [JSON] Issue一覧
   def issues
     repo = params[:repo]
+    Rails.logger.info("Repo parameter: #{repo}")
+
     return render_error("GITHUB_REPO_URLが未設定です") unless repo
 
     url = "https://api.github.com/repos/#{repo}/issues?state=all&per_page=50"
+    Rails.logger.info("GitHub API URL: #{url}")
+
     response = github_api_get(url)
+    Rails.logger.info("GitHub API Response: #{response.inspect}")
+
     return render_error("GitHub API取得失敗") unless response&.is_a?(Array)
 
     # PRでないものだけ抽出
