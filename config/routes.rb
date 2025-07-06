@@ -159,6 +159,10 @@ Rails.application.routes.draw do
       # Slack integration
       post 'slack/commands', to: 'slack#commands'
       post 'slack/interactive', to: 'slack#interactive'
+
+      post 'create-payment-intent', to: 'payments#create_payment_intent'
+      post 'create-subscription', to: 'payments#create_subscription'
     end
   end
+  post '/webhook', to: 'webhook#receive'
 end

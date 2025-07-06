@@ -1,7 +1,7 @@
 require 'openai'
 
 class Api::V1::GoalsController < ApplicationController
-    before_action :authenticate_user! # devise等を利用の場合
+    before_action :authenticate_user! # devise等を利
     before_action :set_goal, only: [:show, :update, :destroy, :update_action_plan_progress]
   
     # GET /api/v1/goals
