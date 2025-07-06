@@ -12,7 +12,7 @@ module KptBe
     config.middleware.use ActionDispatch::Session::CookieStore
 
     # Set Time.zone default to the specified zone and make Active Record auto-convert to this zone.
-    config.time_zone = 'Tokyo'
+    config.time_zone = "Tokyo"
     config.active_record.default_timezone = :local
 
     config.autoload_lib(ignore: %w[assets tasks])
@@ -21,7 +21,7 @@ module KptBe
 
     # Active Job設定
     config.active_job.queue_adapter = :async
-    
+
     # 開発環境でのログ設定
     if Rails.env.development?
       config.log_level = :debug

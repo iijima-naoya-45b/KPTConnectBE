@@ -8,7 +8,7 @@ begin
   test_payload = { user_id: 123, test: true }
   token = JsonWebToken.encode(test_payload)
   decoded = JsonWebToken.decode(token)
-  
+
   # テスト結果の確認
   if decoded[:user_id] == 123
     # テスト成功

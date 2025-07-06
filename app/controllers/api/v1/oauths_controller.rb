@@ -30,11 +30,11 @@ class Api::V1::OauthsController < ApplicationController
 
   def redirect_to_login_with_params(user)
     # user_id, uid, provider, exp（有効期限）をjwtにセット
-    payload = { 
-      user_id: user.id, 
-      uid: user.uid, 
+    payload = {
+      user_id: user.id,
+      uid: user.uid,
       provider: user.provider,
-      exp: 24.hours.from_now.to_i 
+      exp: 24.hours.from_now.to_i
     }.to_json
 
     cookies.encrypted[:jwt] = {
@@ -58,7 +58,7 @@ class Api::V1::OauthsController < ApplicationController
 
     # まず、同じproviderとuidでユーザーを検索
     user = User.find_by(provider: provider, uid: uid)
-    
+
     if user
       # 既存ユーザーが見つかった場合、情報を更新
       if !user.is_active?
@@ -71,7 +71,7 @@ class Api::V1::OauthsController < ApplicationController
     else
       # 同じproviderとuidのユーザーが見つからない場合、emailで検索
       existing_user = User.find_by(email: email)
-      
+
       if existing_user
         # 同じemailのユーザーが存在する場合、そのユーザーを更新
         existing_user.provider = provider

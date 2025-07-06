@@ -48,21 +48,21 @@ gem "dotenv-rails"
 # Gemfile
 gem "redis"
 
-gem 'ruby-openai', '~> 7.0'
+gem "ruby-openai", "~> 7.0"
 
 # Slack通知
 gem "slack-notifier"
 
 # Slack integration
-gem 'slack-ruby-client'
-gem 'slack-ruby-bot-server'
-gem 'pagy'
-gem 'pagy_cursor'
+gem "slack-ruby-client"
+gem "slack-ruby-bot-server"
+gem "pagy"
+gem "pagy_cursor"
 
 # 定期実行（cron jobs）
-gem 'whenever', require: false
+gem "whenever", require: false
 
-gem 'stripe'
+gem "stripe"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -76,4 +76,14 @@ group :development, :test do
 
   # 開発環境でのメール送信テスト用
   gem "letter_opener"
+
+  gem "rubocop", require: false
+
+  gem "flog", require: false
+
+  gem "flay", require: false
+
+  gem "unused", require: false
+
+  gem "reek", require: false
 end

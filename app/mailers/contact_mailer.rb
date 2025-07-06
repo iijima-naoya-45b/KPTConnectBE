@@ -5,7 +5,7 @@ class ContactMailer < ApplicationMailer
     @email = contact_params[:email]
     @subject = contact_params[:subject]
     @message = contact_params[:message]
-    
+
     mail(
       to: @email,
       subject: "【KPT Connect】お問い合わせを受け付けました",
@@ -20,7 +20,7 @@ class ContactMailer < ApplicationMailer
     @subject = contact_params[:subject]
     @message = contact_params[:message]
     @timestamp = Time.current.strftime("%Y年%m月%d日 %H:%M:%S")
-    
+
     mail(
       to: "kptconnect.biz@gmail.com",  # 固定の送信先
       subject: "【KPT Connect】新しいお問い合わせ: #{@subject}",
@@ -36,11 +36,11 @@ class ContactMailer < ApplicationMailer
     @subject = contact_params[:subject]
     @message = contact_params[:message]
     @response = contact_params[:response] || "お問い合わせいただき、ありがとうございます。内容を確認の上、担当者より回答いたします。"
-    
+
     mail(
       to: @email,
       subject: "【KPT Connect】お問い合わせへの回答",
       from: "KPT Connect <#{ENV['FROM_EMAIL'] || 'noreply@kpt-connect.biz'}>"
     )
   end
-end 
+end

@@ -24,7 +24,7 @@ class Api::V1::KptSessionsController < ApplicationController
 
       # フィルター適用
       sessions = sessions.with_tag(params[:tag]) if params[:tag].present?
-      
+
       if params[:date].present?
         begin
           selected_date = Date.parse(params[:date])
@@ -53,7 +53,7 @@ class Api::V1::KptSessionsController < ApplicationController
       # ページネーション
       if params[:start_date].blank? && params[:end_date].blank?
       page = params[:page]&.to_i || 1
-        per_page = [params[:per_page]&.to_i || 20, 100].min
+        per_page = [ params[:per_page]&.to_i || 20, 100 ].min
       total_count = sessions.count
       sessions = sessions.offset((page - 1) * per_page).limit(per_page)
         pagination = {
@@ -90,7 +90,7 @@ class Api::V1::KptSessionsController < ApplicationController
 
   # セッション詳細を取得
   def show
-    begin      
+    begin
       session_data = format_session_detail(@kpt_session)
 
       render json: {
@@ -105,7 +105,7 @@ class Api::V1::KptSessionsController < ApplicationController
 
   # セッションを作成
   def create
-    begin      
+    begin
       @kpt_session = current_user.kpt_sessions.build(session_params)
 
       if @kpt_session.save
@@ -113,7 +113,7 @@ class Api::V1::KptSessionsController < ApplicationController
         create_kpt_items_from_params
 
         session_data = format_session_detail(@kpt_session)
-        
+
         begin
           SlackNotificationJob.perform_later(@kpt_session.id)
         rescue => e
@@ -154,7 +154,7 @@ class Api::V1::KptSessionsController < ApplicationController
   # セッションを更新
   def update
     begin
-      
+
       if @kpt_session.update(session_params)
         session_data = format_session_detail(@kpt_session)
 
@@ -179,7 +179,7 @@ class Api::V1::KptSessionsController < ApplicationController
   # セッションを削除
   def destroy
     begin
-      
+
       if @kpt_session.destroy
 
         render json: {
@@ -238,7 +238,7 @@ class Api::V1::KptSessionsController < ApplicationController
     begin
       start_date = params[:start_date]&.to_date || 30.days.ago.to_date
       end_date = params[:end_date]&.to_date || Date.current
-      
+
       sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
 
       stats_data = {
@@ -294,7 +294,7 @@ class Api::V1::KptSessionsController < ApplicationController
     else
       params
     end
-    
+
     # パラメータを許可
     session_data.permit(
       :title,
@@ -303,9 +303,9 @@ class Api::V1::KptSessionsController < ApplicationController
       :is_template,
       :template_name,
       tags: [],
-      keep: [:content, :emotion_score, :impact_score, { tags: [] }],
-      problem: [:content, :emotion_score, :impact_score, { tags: [] }],
-      try: [:content, :emotion_score, :impact_score, { tags: [] }]
+      keep: [ :content, :emotion_score, :impact_score, { tags: [] } ],
+      problem: [ :content, :emotion_score, :impact_score, { tags: [] } ],
+      try: [ :content, :emotion_score, :impact_score, { tags: [] } ]
     )
   end
 

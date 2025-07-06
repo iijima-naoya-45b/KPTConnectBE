@@ -41,40 +41,40 @@ class WebhookController < ApplicationController
         JSON.parse(payload, symbolize_names: true)
       )
     rescue JSON::ParserError => e
-      render json: { error: 'Invalid payload' }, status: 400
+      render json: { error: "Invalid payload" }, status: 400
       return
     end
 
     case event.type
-    when 'customer.subscription.updated'
+    when "customer.subscription.updated"
       subscription = event.data.object
       user = User.find_by(stripe_customer_id: subscription.customer)
       if user
-        user.update(billing_status: 'true')
+        user.update(billing_status: "true")
       end
-    when 'customer.subscription.deleted'
+    when "customer.subscription.deleted"
       subscription = event.data.object
       user = User.find_by(stripe_customer_id: subscription.customer)
       if user
-        user.update(billing_status: 'false')
+        user.update(billing_status: "false")
       end
-    when 'invoice.payment_failed'
+    when "invoice.payment_failed"
       invoice = event.data.object
       user = User.find_by(stripe_customer_id: invoice.customer)
       if user
-        user.update(billing_status: 'false')
+        user.update(billing_status: "false")
       end
-    when 'customer'
+    when "customer"
       session = event.data.object
       user = User.find_by(stripe_customer_id: session.customer)
       if user
-        user.update(billing_status: 'true')
+        user.update(billing_status: "true")
       end
     else
-      render json: { error: 'Unhandled event type' }, status: 400
+      render json: { error: "Unhandled event type" }, status: 400
       return
     end
 
-    render json: { message: 'Success' }, status: 200
+    render json: { message: "Success" }, status: 200
   end
-end 
+end

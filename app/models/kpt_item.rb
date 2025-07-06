@@ -3,7 +3,7 @@
 class KptItem < ApplicationRecord
   self.inheritance_column = nil
 
-  
+
   belongs_to :kpt_session
 
   # バリデーション
@@ -92,7 +92,7 @@ class KptItem < ApplicationRecord
   # アイテムがアクティブかチェック
   # @return [Boolean] アクティブ状態
   def active?
-    !['completed', 'cancelled'].include?(status)
+    ![ "completed", "cancelled" ].include?(status)
   end
 
   # 期限切れかチェック

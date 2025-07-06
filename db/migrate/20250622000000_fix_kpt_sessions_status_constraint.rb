@@ -10,7 +10,7 @@ class FixKptSessionsStatusConstraint < ActiveRecord::Migration[8.0]
 
     # 既存データを新しい値に変換
     execute <<-SQL
-      UPDATE kpt_sessions 
+      UPDATE kpt_sessions#{' '}
       SET status = CASE
         WHEN status = 'draft' THEN 'not_started'
         WHEN status = 'archived' THEN 'pending'
@@ -35,7 +35,7 @@ class FixKptSessionsStatusConstraint < ActiveRecord::Migration[8.0]
 
     # データを元の値に戻す
     execute <<-SQL
-      UPDATE kpt_sessions 
+      UPDATE kpt_sessions#{' '}
       SET status = CASE
         WHEN status = 'not_started' THEN 'draft'
         WHEN status = 'pending' THEN 'archived'
@@ -51,4 +51,4 @@ class FixKptSessionsStatusConstraint < ActiveRecord::Migration[8.0]
       CHECK (status IN ('draft', 'in_progress', 'completed', 'archived'));
     SQL
   end
-end 
+end

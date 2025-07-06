@@ -2,12 +2,10 @@
 
 # ユーザーAPIコントローラー
 class Api::V1::UsersController < ApplicationController
-
   # 現在のユーザー情報を取得
   # @route GET /api/v1/me
   # @response [JSON] ユーザー情報
   def me
-    
     if current_user
       render json: {
         id: current_user.id.to_s,
@@ -199,7 +197,6 @@ class Api::V1::UsersController < ApplicationController
           }, status: :unprocessable_entity
           return
         end
-
       end
 
       # セッションをクリア

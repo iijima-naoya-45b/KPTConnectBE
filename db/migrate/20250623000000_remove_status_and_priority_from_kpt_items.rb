@@ -21,7 +21,7 @@ class RemoveStatusAndPriorityFromKptItems < ActiveRecord::Migration[8.0]
     # statusとpriorityを除外してビューを再作成
     execute <<-SQL
       CREATE VIEW user_kpt_stats AS
-      SELECT 
+      SELECT#{' '}
         u.id as user_id,
         COALESCE(u.username, u.email) as user_name,
         COUNT(DISTINCT s.id) as total_sessions,
@@ -55,7 +55,7 @@ class RemoveStatusAndPriorityFromKptItems < ActiveRecord::Migration[8.0]
     # 元のビューを再作成
     execute <<-SQL
       CREATE VIEW user_kpt_stats AS
-      SELECT 
+      SELECT#{' '}
         u.id as user_id,
         COALESCE(u.username, u.email) as user_name,
         COUNT(DISTINCT s.id) as total_sessions,
@@ -71,4 +71,4 @@ class RemoveStatusAndPriorityFromKptItems < ActiveRecord::Migration[8.0]
       GROUP BY u.id, COALESCE(u.username, u.email);
     SQL
   end
-end 
+end

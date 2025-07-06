@@ -5,7 +5,7 @@ class MigrateActionPlanToObjects < ActiveRecord::Migration[8.0]
   def up
     # 既存のaction_planデータを変換
     execute <<-SQL
-      UPDATE goals 
+      UPDATE goals#{' '}
       SET action_plan = (
         SELECT json_agg(
           json_build_object(
@@ -19,7 +19,7 @@ class MigrateActionPlanToObjects < ActiveRecord::Migration[8.0]
           FROM json_array_elements_text(action_plan) AS action_item
         ) numbered_actions
       )
-      WHERE action_plan IS NOT NULL 
+      WHERE action_plan IS NOT NULL#{' '}
         AND json_typeof(action_plan) = 'array'
         AND json_array_length(action_plan) > 0
         AND json_typeof(action_plan->0) = 'string';
@@ -29,15 +29,15 @@ class MigrateActionPlanToObjects < ActiveRecord::Migration[8.0]
   def down
     # ダウングレード時は文字列配列に戻す
     execute <<-SQL
-      UPDATE goals 
+      UPDATE goals#{' '}
       SET action_plan = (
         SELECT json_agg(action_item->>'title')
         FROM json_array_elements(action_plan) AS action_item
       )
-      WHERE action_plan IS NOT NULL 
+      WHERE action_plan IS NOT NULL#{' '}
         AND json_typeof(action_plan) = 'array'
         AND json_array_length(action_plan) > 0
         AND json_typeof(action_plan->0) = 'object';
     SQL
   end
-end 
+end
