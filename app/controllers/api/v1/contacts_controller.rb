@@ -4,10 +4,10 @@ class Api::V1::ContactsController < ApplicationController
   # POST /api/v1/contacts
   def create
     contact_params = params.require(:contact).permit(:name, :email, :subject, :message)
-    
+
     # バリデーション
     unless valid_contact_params?(contact_params)
-      render json: { error: '必須項目が不足しています' }, status: :bad_request
+      render json: { error: "必須項目が不足しています" }, status: :bad_request
       return
     end
 
@@ -15,19 +15,19 @@ class Api::V1::ContactsController < ApplicationController
     begin
       # ユーザー宛の確認メール
       ContactMailer.contact_confirmation(contact_params).deliver_now
-      
+
       # 管理者宛の通知メール
       ContactMailer.contact_notification(contact_params).deliver_now
-      
-      render json: { 
-        message: 'お問い合わせを受け付けました。確認メールをお送りしましたのでご確認ください。',
-        status: 'success'
+
+      render json: {
+        message: "お問い合わせを受け付けました。確認メールをお送りしましたのでご確認ください。",
+        status: "success"
       }, status: :ok
-      
+
     rescue => e
-      render json: { 
-        error: 'メール送信に失敗しました。しばらく時間をおいて再度お試しください。',
-        status: 'error'
+      render json: {
+        error: "メール送信に失敗しました。しばらく時間をおいて再度お試しください。",
+        status: "error"
       }, status: :internal_server_error
     end
   end
@@ -35,9 +35,9 @@ class Api::V1::ContactsController < ApplicationController
   private
 
   def valid_contact_params?(params)
-    params[:name].present? && 
-    params[:email].present? && 
-    params[:subject].present? && 
+    params[:name].present? &&
+    params[:email].present? &&
+    params[:subject].present? &&
     params[:message].present? &&
     valid_email_format?(params[:email])
   end
@@ -45,4 +45,4 @@ class Api::V1::ContactsController < ApplicationController
   def valid_email_format?(email)
     email =~ /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
   end
-end 
+end

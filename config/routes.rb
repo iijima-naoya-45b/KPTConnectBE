@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  root to: proc { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
+  root to: proc { [ 200, { "Content-Type" => "text/plain" }, [ "OK" ] ] }
   namespace :api do
     namespace :v1 do
       # 認証
@@ -149,20 +149,20 @@ Rails.application.routes.draw do
           post :suggest
         end
         member do
-          patch 'action_plans/:action_id', to: 'goals#update_action_plan_progress', as: 'update_action_plan'
+          patch "action_plans/:action_id", to: "goals#update_action_plan_progress", as: "update_action_plan"
         end
       end
 
       # お問い合わせ
-      resources :contacts, only: [:create]
+      resources :contacts, only: [ :create ]
 
       # Slack integration
-      post 'slack/commands', to: 'slack#commands'
-      post 'slack/interactive', to: 'slack#interactive'
+      post "slack/commands", to: "slack#commands"
+      post "slack/interactive", to: "slack#interactive"
 
-      post 'create-payment-intent', to: 'payments#create_payment_intent'
-      post 'create-subscription', to: 'payments#create_subscription'
+      post "create-payment-intent", to: "payments#create_payment_intent"
+      post "create-subscription", to: "payments#create_subscription"
     end
   end
-  post '/webhook', to: 'webhook#receive'
+  post "/webhook", to: "webhook#receive"
 end

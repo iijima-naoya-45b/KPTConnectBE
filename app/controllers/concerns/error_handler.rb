@@ -75,4 +75,4 @@ module ErrorHandler
   rescue StandardError => e
     handle_standard_error(e)
   end
-end 
+end

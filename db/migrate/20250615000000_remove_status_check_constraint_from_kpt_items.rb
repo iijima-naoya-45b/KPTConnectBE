@@ -17,4 +17,4 @@ class RemoveStatusCheckConstraintFromKptItems < ActiveRecord::Migration[7.0]
       ALTER TABLE kpt_items ADD CONSTRAINT check_status_values CHECK (status IN ('open', 'in_progress', 'completed', 'cancelled'));
     SQL
   end
-end 
+end

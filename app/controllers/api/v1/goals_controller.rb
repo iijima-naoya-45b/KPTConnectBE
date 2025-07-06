@@ -1,20 +1,20 @@
-require 'openai'
+require "openai"
 
 class Api::V1::GoalsController < ApplicationController
     before_action :authenticate_user! # devise等を利
-    before_action :set_goal, only: [:show, :update, :destroy, :update_action_plan_progress]
-  
+    before_action :set_goal, only: [ :show, :update, :destroy, :update_action_plan_progress ]
+
     # GET /api/v1/goals
     def index
       @goals = current_user.goals.order(created_at: :desc)
       render json: @goals
     end
-  
+
     # GET /api/v1/goals/:id
     def show
       render json: @goal
     end
-  
+
     # POST /api/v1/goals
     def create
       goal_p = goal_params
@@ -27,7 +27,7 @@ class Api::V1::GoalsController < ApplicationController
         render json: { errors: @goal.errors.full_messages }, status: :unprocessable_entity
       end
     end
-  
+
     # PATCH/PUT /api/v1/goals/:id
     def update
       if @goal.update(goal_params)
@@ -36,7 +36,7 @@ class Api::V1::GoalsController < ApplicationController
         render json: { errors: @goal.errors.full_messages }, status: :unprocessable_entity
       end
     end
-  
+
     # DELETE /api/v1/goals/:id
     def destroy
       @goal.destroy
@@ -47,24 +47,24 @@ class Api::V1::GoalsController < ApplicationController
     def update_action_plan_progress
       action_id = params[:action_id]
       progress = params[:progress].to_i
-      
+
       if @goal.update_action_plan_progress(action_id, progress)
-        render json: { 
-          message: 'アクションプランの進捗が更新されました',
+        render json: {
+          message: "アクションプランの進捗が更新されました",
           goal: @goal,
           action_plan_progress: @goal.action_plan_overall_progress
         }
       else
-        render json: { errors: ['アクションプランの更新に失敗しました'] }, status: :unprocessable_entity
+        render json: { errors: [ "アクションプランの更新に失敗しました" ] }, status: :unprocessable_entity
       end
     end
 
     # POST /api/v1/goals/suggest
     def suggest
       prompt = create_prompt(params)
-      
+
       begin
-        client = OpenAI::Client.new(access_token: ENV['OPENAI_API_KEY'], request_timeout: 120)
+        client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"], request_timeout: 120)
         response = client.chat(
           parameters: {
             model: "gpt-4o",
@@ -79,27 +79,27 @@ class Api::V1::GoalsController < ApplicationController
         content = response.dig("choices", 0, "message", "content")
         json_match = content.match(/```json\s*(.*?)\s*```/m)
         json_str = json_match ? json_match[1] : content.to_s.strip
-        
+
         suggestion = JSON.parse(json_str)
         render json: suggestion, status: :ok
       rescue JSON::ParserError => e
-        render json: { errors: ["AIからの応答を解析できませんでした。", e.message] }, status: :internal_server_error
+        render json: { errors: [ "AIからの応答を解析できませんでした。", e.message ] }, status: :internal_server_error
       rescue => e
-        render json: { errors: ["予期せぬエラーが発生しました。", e.message] }, status: :internal_server_error
+        render json: { errors: [ "予期せぬエラーが発生しました。", e.message ] }, status: :internal_server_error
       end
     end
-      
+
     private
-  
+
     def set_goal
       @goal = current_user.goals.find(params[:id])
     end
-  
+
     def goal_params
       params.require(:goal).permit(
-        :title, 
-        :description, 
-        :deadline, 
+        :title,
+        :description,
+        :deadline,
         :progress,
         :status,
         :progress_check,

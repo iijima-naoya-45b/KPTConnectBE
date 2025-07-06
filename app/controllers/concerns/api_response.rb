@@ -8,7 +8,7 @@ module ApiResponse
     response = { success: true }
     response[:data] = data if data.present?
     response[:message] = message if message.present?
-    
+
     render json: response, status: status
   end
 
@@ -19,7 +19,7 @@ module ApiResponse
       error: error
     }
     response[:details] = details if details.present?
-    
+
     render json: response, status: status
   end
 
@@ -55,4 +55,4 @@ module ApiResponse
       error: message
     }, status: :forbidden
   end
-end 
+end

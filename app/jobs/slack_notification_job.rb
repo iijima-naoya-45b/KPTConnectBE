@@ -1,84 +1,75 @@
-require 'openai'
+require "openai"
 
 class SlackNotificationJob < ApplicationJob
   queue_as :default
 
   def perform(kpt_session_id)
-    kpt_session = KptSession.find_by(id: kpt_session_id)
+    kpt_session = find_kpt_session(kpt_session_id)
     return unless kpt_session
 
     user = kpt_session.user
     return unless user
 
-    unless user.slack_notification_enabled? && user.slack_webhook_url.present?
-      return
-    end
+    return unless user.slack_notification_enabled? && user.slack_webhook_url.present?
 
-    # AIリアクションを生成
     ai_reaction = generate_ai_reaction(kpt_session)
-
-    begin
-      # HTTPクライアントを使用してSlack WebhookにPOST
-      uri = URI(user.slack_webhook_url)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.open_timeout = 10
-      http.read_timeout = 10
-
-      request = Net::HTTP::Post.new(uri)
-      request['Content-Type'] = 'application/json'
-      request.body = build_rich_slack_message(kpt_session, user, ai_reaction).to_json
-
-      response = http.request(request)
-    rescue => e
-      # エラーは静かに処理
-    end
+    send_slack_notification(user.slack_webhook_url, kpt_session, user, ai_reaction)
   end
 
   private
 
-  def generate_ai_reaction(kpt_session)
-    # OpenAI API KEYが設定されていない場合はスキップ
-    unless ENV['OPENAI_API_KEY'].present?
-      return get_fallback_message(kpt_session)
-    end
+  def find_kpt_session(kpt_session_id)
+    KptSession.find_by(id: kpt_session_id)
+  end
+
+  def send_slack_notification(webhook_url, kpt_session, user, ai_reaction)
+    uri = URI(webhook_url)
+    http = Net::HTTP.new(uri.host, uri.port)
+    http.use_ssl = true
+    http.open_timeout = 10
+    http.read_timeout = 10
+
+    request = Net::HTTP::Post.new(uri)
+    request["Content-Type"] = "application/json"
+    request.body = build_rich_slack_message(kpt_session, user, ai_reaction).to_json
 
     begin
-      prompt = create_ai_reaction_prompt(kpt_session)
-      
-      client = OpenAI::Client.new(access_token: ENV['OPENAI_API_KEY'], request_timeout: 60)
+      response = http.request(request)
+    rescue => e
+      # Handle errors silently
+    end
+  end
+
+  def generate_ai_reaction(kpt_session)
+    return get_fallback_message(kpt_session) unless ENV["OPENAI_API_KEY"].present?
+
+    prompt = create_ai_reaction_prompt(kpt_session)
+    client = OpenAI::Client.new(access_token: ENV["OPENAI_API_KEY"], request_timeout: 60)
+
+    begin
       response = client.chat(
         parameters: {
-          model: "gpt-4o-mini", # コスト効率の良いモデルを使用
+          model: "gpt-4o-mini",
           messages: [
-            { 
-              role: "system", 
-              content: "あなたは経験豊富なメンターです。ユーザーの1日の振り返りに対して、温かく建設的なフィードバックを提供してください。" 
-            },
+            { role: "system", content: "あなたは経験豊富なメンターです。ユーザーの1日の振り返りに対して、温かく建設的なフィードバックを提供してください。" },
             { role: "user", content: prompt }
           ],
           temperature: 0.7,
-          max_tokens: 500 # Slack投稿に適した長さに制限
+          max_tokens: 500
         }
       )
 
       content = response.dig("choices", 0, "message", "content")
-      
-      if content.present?
-        return content.strip
-      else
-        return get_fallback_message(kpt_session)
-      end
-
+      content.present? ? content.strip : get_fallback_message(kpt_session)
     rescue => e
-      return get_fallback_message(kpt_session)
+      get_fallback_message(kpt_session)
     end
   end
 
   def get_fallback_message(kpt_session)
-    keep_count = kpt_session.kpt_items.where(type: 'keep').count
-    problem_count = kpt_session.kpt_items.where(type: 'problem').count
-    try_count = kpt_session.kpt_items.where(type: 'try').count
+    keep_count = kpt_session.kpt_items.where(type: "keep").count
+    problem_count = kpt_session.kpt_items.where(type: "problem").count
+    try_count = kpt_session.kpt_items.where(type: "try").count
     total_count = keep_count + problem_count + try_count
 
     # KPTの内容に応じたフォールバックメッセージを生成
@@ -98,11 +89,11 @@ class SlackNotificationJob < ApplicationJob
   end
 
   def create_ai_reaction_prompt(kpt_session)
-    keep_items = kpt_session.kpt_items.where(type: 'keep')
-    problem_items = kpt_session.kpt_items.where(type: 'problem')
-    try_items = kpt_session.kpt_items.where(type: 'try')
+    keep_items = kpt_session.kpt_items.where(type: "keep")
+    problem_items = kpt_session.kpt_items.where(type: "problem")
+    try_items = kpt_session.kpt_items.where(type: "try")
 
-    session_date = kpt_session.session_date&.strftime('%Y年%m月%d日') || kpt_session.created_at.strftime('%Y年%m月%d日')
+    session_date = kpt_session.session_date&.strftime("%Y年%m月%d日") || kpt_session.created_at.strftime("%Y年%m月%d日")
 
     prompt = <<~PROMPT
       以下は#{session_date}のKPT振り返りです。内容を分析して、温かく建設的なフィードバックを200文字以内で提供してください。
@@ -130,9 +121,9 @@ class SlackNotificationJob < ApplicationJob
   end
 
   def build_rich_slack_message(kpt_session, user, ai_reaction = nil)
-    keep_items = kpt_session.kpt_items.where(type: 'keep')
-    problem_items = kpt_session.kpt_items.where(type: 'problem')
-    try_items = kpt_session.kpt_items.where(type: 'try')
+    keep_items = kpt_session.kpt_items.where(type: "keep")
+    problem_items = kpt_session.kpt_items.where(type: "problem")
+    try_items = kpt_session.kpt_items.where(type: "try")
 
     blocks = [
       # ヘッダー
@@ -186,7 +177,7 @@ class SlackNotificationJob < ApplicationJob
           text: "*✅ Keep（継続したいこと）:*"
         }
       }
-      
+
       keep_items.each_with_index do |item, index|
         blocks << {
           type: "section",
@@ -207,7 +198,7 @@ class SlackNotificationJob < ApplicationJob
           text: "*⚠️ Problem（改善したいこと）:*"
         }
       }
-      
+
       problem_items.each_with_index do |item, index|
         blocks << {
           type: "section",
@@ -228,7 +219,7 @@ class SlackNotificationJob < ApplicationJob
           text: "*🚀 Try（試してみたいこと）:*"
         }
       }
-      
+
       try_items.each_with_index do |item, index|
         blocks << {
           type: "section",
@@ -262,7 +253,7 @@ class SlackNotificationJob < ApplicationJob
             text: "📊 詳細を見る"
           },
           style: "primary",
-          url: (ENV['FRONTEND_URL'] || 'http://localhost:3000').chomp('/') + "/dashboard/kpt/#{kpt_session.id}"
+          url: (ENV["FRONTEND_URL"] || "http://localhost:3000").chomp("/") + "/dashboard/kpt/#{kpt_session.id}"
         }
       ]
     }
@@ -275,30 +266,30 @@ class SlackNotificationJob < ApplicationJob
 
   def format_kpt_item_content(item, index)
     content = "#{index}. #{item.content}"
-    
+
     # 感情スコアがある場合
     if item.emotion_score.present?
       emotion_emoji = case item.emotion_score
-                     when 1..2 then '😢'
-                     when 3..4 then '😐'
-                     when 5..6 then '🙂'
-                     when 7..8 then '😊'
-                     when 9..10 then '😄'
-                     else ''
-                     end
+      when 1..2 then "😢"
+      when 3..4 then "😐"
+      when 5..6 then "🙂"
+      when 7..8 then "😊"
+      when 9..10 then "😄"
+      else ""
+      end
       content += " #{emotion_emoji}"
     end
 
     # 影響度スコアがある場合
     if item.impact_score.present?
       impact_emoji = case item.impact_score
-                    when 1..2 then '📉'
-                    when 3..4 then '➡️'
-                    when 5..6 then '📈'
-                    when 7..8 then '🚀'
-                    when 9..10 then '💥'
-                    else ''
-                    end
+      when 1..2 then "📉"
+      when 3..4 then "➡️"
+      when 5..6 then "📈"
+      when 7..8 then "🚀"
+      when 9..10 then "💥"
+      else ""
+      end
       content += " #{impact_emoji}"
     end
 
@@ -324,4 +315,4 @@ class SlackNotificationJob < ApplicationJob
 
     content
   end
-end 
+end

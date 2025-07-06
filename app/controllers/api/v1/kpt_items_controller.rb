@@ -10,13 +10,13 @@ class Api::V1::KptItemsController < ApplicationController
     safe_execute do
       type_filter = params[:type]
       status_filter = params[:status]
-      
+
       items = current_user.kpt_items.includes(:kpt_session)
       items = items.where(type: type_filter) if type_filter.present?
       items = items.where(status: status_filter) if status_filter.present?
-      
+
       items_data = items.map { |item| format_kpt_item_summary(item) }
-      
+
       render_success(
         data: { items: items_data },
         message: "アイテム一覧を取得しました"
@@ -28,7 +28,7 @@ class Api::V1::KptItemsController < ApplicationController
   def show
     safe_execute do
       item_data = format_kpt_item_detail(@kpt_item)
-      
+
       render_success(
         data: item_data,
         message: "アイテム詳細を取得しました"
@@ -194,7 +194,7 @@ class Api::V1::KptItemsController < ApplicationController
     safe_execute do
       days = params[:days]&.to_i || 30
       start_date = days.days.ago.to_date
-      
+
       items = current_user.kpt_items.joins(:kpt_session)
                           .where(kpt_sessions: { session_date: start_date..Date.current })
 
