@@ -23,7 +23,7 @@ class Api::V1::SessionsController < ApplicationController
   end
 
   def logout
-    cookies.delete(:jwt)
+    cookies.delete(:jwt, domain: Rails.env.production? ? ".kpt-connect.biz" : nil, path: "/")
     render json: { message: "Logout successful" }, status: :ok
   end
 end
