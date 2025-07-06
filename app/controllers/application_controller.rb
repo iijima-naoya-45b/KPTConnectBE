@@ -40,7 +40,6 @@ class ApplicationController < ActionController::API
   
       if user_id.present?
         @current_user = User.active.find_by(id: user_id)
-        Rails.logger.debug("Current user: #{@current_user.inspect}")
       end
     rescue JSON::ParserError, StandardError => e
       @current_user = nil

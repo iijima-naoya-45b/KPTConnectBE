@@ -25,7 +25,6 @@ class Api::V1::ContactsController < ApplicationController
       }, status: :ok
       
     rescue => e
-      Rails.logger.error "Contact mail delivery failed: #{e.message}"
       render json: { 
         error: 'メール送信に失敗しました。しばらく時間をおいて再度お試しください。',
         status: 'error'
