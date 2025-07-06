@@ -31,18 +31,19 @@ class ApplicationController < ActionController::API
   # Cookieからユーザー情報を設定
   def set_current_user_from_cookie
     jwt = cookies.encrypted[:jwt]
+  
     return unless jwt
-
+  
     begin
       payload = JSON.parse(jwt)
       user_id = payload["user_id"]
-
+  
       if user_id.present?
         @current_user = User.active.find_by(id: user_id)
+        Rails.logger.debug("Current user: #{@current_user.inspect}")
       end
     rescue JSON::ParserError, StandardError => e
       @current_user = nil
-      # Cookieをクリア
       cookies.delete(:jwt)
     end
   end

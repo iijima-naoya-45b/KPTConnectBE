@@ -42,7 +42,7 @@ class Api::V1::OauthsController < ApplicationController
       httponly: true,
       secure: Rails.env.production?,
       same_site: :lax,
-      domain: Rails.env.development? ? "localhost" : nil,
+      domain: Rails.env.production? ? ".kpt-connect.biz": nil,
       path: "/",
       expires: 24.hours.from_now
     }

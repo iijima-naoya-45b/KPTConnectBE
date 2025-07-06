@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_23_000001) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -349,6 +349,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_23_000001) do
     t.datetime "deleted_at"
     t.boolean "slack_notification_enabled", default: false, null: false
     t.string "slack_webhook_url"
+    t.string "billing_status", default: "false"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true

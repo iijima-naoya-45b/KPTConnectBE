@@ -2,13 +2,12 @@
 
 # ユーザーAPIコントローラー
 class Api::V1::UsersController < ApplicationController
-  before_action :authenticate_user!
 
   # 現在のユーザー情報を取得
   # @route GET /api/v1/me
   # @response [JSON] ユーザー情報
   def me
-
+    
     if current_user
       render json: {
         id: current_user.id.to_s,
@@ -18,6 +17,7 @@ class Api::V1::UsersController < ApplicationController
         slack_webhook_url: current_user.slack_webhook_url
       }, status: :ok
     else
+      Rails.logger.warn("Unauthorized access attempt")
       render json: { error: "Unauthorized" }, status: :unauthorized
     end
   end

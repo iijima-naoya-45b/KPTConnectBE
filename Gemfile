@@ -62,6 +62,8 @@ gem 'pagy_cursor'
 # 定期実行（cron jobs）
 gem 'whenever', require: false
 
+gem 'stripe'
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

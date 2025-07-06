@@ -12,6 +12,7 @@ class Api::V1::SessionsController < ApplicationController
         httponly: true,
         secure: Rails.env.production?,
         same_site: :lax,
+        domain: Rails.env.production? ? ".kpt-connect.biz": nil,
         expires: 1.hour.from_now
       }
 
