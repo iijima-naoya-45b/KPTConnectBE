@@ -1,6 +1,11 @@
 class Api::V1::GithubController < ApplicationController
   before_action :require_github_token, only: [ :issues, :issue_detail ]
 
+  def index
+    issues = current_user.github_issues
+    render json: { success: true, issues: issues }
+  end
+  
   # GET /api/v1/github/issues
   # @return [JSON] Issue一覧
   def issues
@@ -64,6 +69,34 @@ class Api::V1::GithubController < ApplicationController
     end
 
     head :ok
+  end
+
+  def save_issues
+    issues = params[:issues]
+    issues.each do |issue|
+      begin
+        current_user.github_issues.create!(
+          title: issue[:title],
+          body: issue[:body],
+          state: issue[:state]
+        )
+      rescue => e
+        Rails.logger.error("Failed to save issue: #{issue.inspect}, Error: #{e.message}")
+        render json: { success: false, error: "Failed to save issue: #{issue[:title]}, Error: #{e.message}" }, status: :internal_server_error
+        return
+      end
+    end
+    render json: { success: true }
+  end
+
+  # DELETE /api/v1/github/issues/:id
+  def destroy
+    issue = current_user.github_issues.find(params[:id])
+    if issue.destroy
+      render json: { success: true, message: "Issue deleted successfully" }
+    else
+      render json: { success: false, error: "Failed to delete issue" }, status: :unprocessable_entity
+    end
   end
 
   private

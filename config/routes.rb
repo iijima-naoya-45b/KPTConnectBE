@@ -141,8 +141,11 @@ Rails.application.routes.draw do
       end
 
       get "github/repositories", to: "github#repositories"
+      get "github/index", to: "github#index"
       get "github/issues", to: "github#issues"
       get "github/pull_requests", to: "github#pull_requests"
+      post "github/save_issues", to: "github#save_issues"
+      delete "github/issues/:id", to: "github#destroy"
 
       resources :goals do
         collection do
