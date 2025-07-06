@@ -24,14 +24,14 @@ class SlackNotificationJob < ApplicationJob
 
   def send_slack_notification(webhook_url, kpt_session, user, ai_reaction)
     uri = URI(webhook_url)
-    http = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.open_timeout = 10
-    http.read_timeout = 10
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.open_timeout = 10
+      http.read_timeout = 10
 
-    request = Net::HTTP::Post.new(uri)
-    request["Content-Type"] = "application/json"
-    request.body = build_rich_slack_message(kpt_session, user, ai_reaction).to_json
+      request = Net::HTTP::Post.new(uri)
+      request["Content-Type"] = "application/json"
+      request.body = build_rich_slack_message(kpt_session, user, ai_reaction).to_json
 
     begin
       response = http.request(request)

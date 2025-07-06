@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_06_120013) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -21,7 +21,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.string "uid"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "user_id" ], name: "index_authentications_on_user_id"
+    t.index ["user_id"], name: "index_authentications_on_user_id"
   end
 
   create_table "charts", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -36,15 +36,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.integer "display_order", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "chart_type" ], name: "index_charts_on_chart_type"
-    t.index [ "created_at" ], name: "index_charts_on_created_at"
-    t.index [ "display_order" ], name: "index_charts_on_display_order"
-    t.index [ "is_favorite" ], name: "index_charts_on_is_favorite"
-    t.index [ "is_public" ], name: "index_charts_on_is_public"
-    t.index [ "user_id", "chart_type" ], name: "index_charts_on_user_id_and_chart_type"
-    t.index [ "user_id", "display_order" ], name: "index_charts_on_user_id_and_display_order"
-    t.index [ "user_id", "is_favorite" ], name: "index_charts_on_user_id_and_is_favorite"
-    t.index [ "user_id" ], name: "index_charts_on_user_id"
+    t.index ["chart_type"], name: "index_charts_on_chart_type"
+    t.index ["created_at"], name: "index_charts_on_created_at"
+    t.index ["display_order"], name: "index_charts_on_display_order"
+    t.index ["is_favorite"], name: "index_charts_on_is_favorite"
+    t.index ["is_public"], name: "index_charts_on_is_public"
+    t.index ["user_id", "chart_type"], name: "index_charts_on_user_id_and_chart_type"
+    t.index ["user_id", "display_order"], name: "index_charts_on_user_id_and_display_order"
+    t.index ["user_id", "is_favorite"], name: "index_charts_on_user_id_and_is_favorite"
+    t.index ["user_id"], name: "index_charts_on_user_id"
     t.check_constraint "chart_type::text = ANY (ARRAY['line'::character varying, 'bar'::character varying, 'pie'::character varying, 'area'::character varying, 'scatter'::character varying, 'heatmap'::character varying, 'treemap'::character varying]::text[])", name: "check_charts_type"
   end
 
@@ -59,9 +59,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.string "badge_class", limit: 100, comment: "CSSバッジクラス名"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "is_active", "display_order" ], name: "index_feedback_priorities_on_active_and_order"
-    t.index [ "key" ], name: "index_feedback_priorities_on_key", unique: true
-    t.index [ "priority_level" ], name: "index_feedback_priorities_on_level"
+    t.index ["is_active", "display_order"], name: "index_feedback_priorities_on_active_and_order"
+    t.index ["key"], name: "index_feedback_priorities_on_key", unique: true
+    t.index ["priority_level"], name: "index_feedback_priorities_on_level"
   end
 
   create_table "feedback_types", force: :cascade do |t|
@@ -74,8 +74,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.string "icon_name", limit: 50, comment: "アイコン名"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "is_active", "display_order" ], name: "index_feedback_types_on_active_and_order"
-    t.index [ "key" ], name: "index_feedback_types_on_key", unique: true
+    t.index ["is_active", "display_order"], name: "index_feedback_types_on_active_and_order"
+    t.index ["key"], name: "index_feedback_types_on_key", unique: true
   end
 
   create_table "feedbacks", force: :cascade do |t|
@@ -92,13 +92,26 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.boolean "is_active", default: true, null: false, comment: "アクティブ状態"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "feedback_priority_id" ], name: "index_feedbacks_on_feedback_priority_id"
-    t.index [ "feedback_priority_id" ], name: "index_feedbacks_on_priority"
-    t.index [ "feedback_type_id" ], name: "index_feedbacks_on_feedback_type_id"
-    t.index [ "feedback_type_id" ], name: "index_feedbacks_on_type"
-    t.index [ "status", "created_at" ], name: "index_feedbacks_on_status_and_created"
-    t.index [ "user_id", "created_at" ], name: "index_feedbacks_on_user_and_created"
-    t.index [ "user_id" ], name: "index_feedbacks_on_user_id"
+    t.index ["feedback_priority_id"], name: "index_feedbacks_on_feedback_priority_id"
+    t.index ["feedback_priority_id"], name: "index_feedbacks_on_priority"
+    t.index ["feedback_type_id"], name: "index_feedbacks_on_feedback_type_id"
+    t.index ["feedback_type_id"], name: "index_feedbacks_on_type"
+    t.index ["status", "created_at"], name: "index_feedbacks_on_status_and_created"
+    t.index ["user_id", "created_at"], name: "index_feedbacks_on_user_and_created"
+    t.index ["user_id"], name: "index_feedbacks_on_user_id"
+  end
+
+  create_table "github_issues", force: :cascade do |t|
+    t.integer "number"
+    t.string "title"
+    t.text "body"
+    t.string "state"
+    t.datetime "closed_at"
+    t.string "user_login"
+    t.text "labels", default: [], array: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.integer "user_id", null: false
   end
 
   create_table "goals", force: :cascade do |t|
@@ -113,7 +126,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.boolean "created_by_ai", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "user_id" ], name: "index_goals_on_user_id"
+    t.index ["user_id"], name: "index_goals_on_user_id"
   end
 
   create_table "insights", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -128,16 +141,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.boolean "is_active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "confidence_score" ], name: "index_insights_on_confidence_score"
-    t.index [ "content" ], name: "index_insights_on_content", using: :gin
-    t.index [ "created_at" ], name: "index_insights_on_created_at"
-    t.index [ "data_source" ], name: "index_insights_on_data_source"
-    t.index [ "insight_type" ], name: "index_insights_on_insight_type"
-    t.index [ "is_active" ], name: "index_insights_on_is_active"
-    t.index [ "kpt_session_id", "insight_type" ], name: "index_insights_on_kpt_session_id_and_insight_type"
-    t.index [ "kpt_session_id" ], name: "index_insights_on_kpt_session_id"
-    t.index [ "user_id", "insight_type" ], name: "index_insights_on_user_id_and_insight_type"
-    t.index [ "user_id" ], name: "index_insights_on_user_id"
+    t.index ["confidence_score"], name: "index_insights_on_confidence_score"
+    t.index ["content"], name: "index_insights_on_content", using: :gin
+    t.index ["created_at"], name: "index_insights_on_created_at"
+    t.index ["data_source"], name: "index_insights_on_data_source"
+    t.index ["insight_type"], name: "index_insights_on_insight_type"
+    t.index ["is_active"], name: "index_insights_on_is_active"
+    t.index ["kpt_session_id", "insight_type"], name: "index_insights_on_kpt_session_id_and_insight_type"
+    t.index ["kpt_session_id"], name: "index_insights_on_kpt_session_id"
+    t.index ["user_id", "insight_type"], name: "index_insights_on_user_id_and_insight_type"
+    t.index ["user_id"], name: "index_insights_on_user_id"
     t.check_constraint "confidence_score >= 0::numeric AND confidence_score <= 1::numeric", name: "check_insights_confidence_score"
     t.check_constraint "insight_type::text = ANY (ARRAY['summary'::character varying, 'sentiment'::character varying, 'trend'::character varying, 'recommendation'::character varying, 'pattern'::character varying]::text[])", name: "check_insights_type"
   end
@@ -157,13 +170,13 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.datetime "updated_at", null: false
     t.date "start_date"
     t.date "end_date"
-    t.index [ "completed_at" ], name: "index_kpt_items_on_completed_at"
-    t.index [ "due_date" ], name: "index_kpt_items_on_due_date"
-    t.index [ "emotion_score" ], name: "index_kpt_items_on_emotion_score"
-    t.index [ "impact_score" ], name: "index_kpt_items_on_impact_score"
-    t.index [ "kpt_session_id" ], name: "index_kpt_items_on_kpt_session_id"
-    t.index [ "tags" ], name: "index_kpt_items_on_tags", using: :gin
-    t.index [ "type" ], name: "index_kpt_items_on_type"
+    t.index ["completed_at"], name: "index_kpt_items_on_completed_at"
+    t.index ["due_date"], name: "index_kpt_items_on_due_date"
+    t.index ["emotion_score"], name: "index_kpt_items_on_emotion_score"
+    t.index ["impact_score"], name: "index_kpt_items_on_impact_score"
+    t.index ["kpt_session_id"], name: "index_kpt_items_on_kpt_session_id"
+    t.index ["tags"], name: "index_kpt_items_on_tags", using: :gin
+    t.index ["type"], name: "index_kpt_items_on_type"
     t.check_constraint "emotion_score >= 1 AND emotion_score <= 5", name: "check_kpt_items_emotion_score"
     t.check_constraint "impact_score >= 1 AND impact_score <= 5", name: "check_kpt_items_impact_score"
     t.check_constraint "type::text = ANY (ARRAY['keep'::character varying, 'problem'::character varying, 'try'::character varying]::text[])", name: "check_kpt_items_type"
@@ -178,7 +191,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.text "try"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "user_id" ], name: "index_kpt_reviews_on_user_id"
+    t.index ["user_id"], name: "index_kpt_reviews_on_user_id"
   end
 
   create_table "kpt_sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -192,11 +205,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.datetime "completed_at", precision: nil
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "completed_at" ], name: "index_kpt_sessions_on_completed_at"
-    t.index [ "is_template" ], name: "index_kpt_sessions_on_is_template"
-    t.index [ "session_date" ], name: "index_kpt_sessions_on_session_date"
-    t.index [ "tags" ], name: "index_kpt_sessions_on_tags", using: :gin
-    t.index [ "user_id" ], name: "index_kpt_sessions_on_user_id"
+    t.index ["completed_at"], name: "index_kpt_sessions_on_completed_at"
+    t.index ["is_template"], name: "index_kpt_sessions_on_is_template"
+    t.index ["session_date"], name: "index_kpt_sessions_on_session_date"
+    t.index ["tags"], name: "index_kpt_sessions_on_tags", using: :gin
+    t.index ["user_id"], name: "index_kpt_sessions_on_user_id"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -212,7 +225,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "user_id" ], name: "index_notifications_on_user_id"
+    t.index ["user_id"], name: "index_notifications_on_user_id"
   end
 
   create_table "payment_methods", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -227,15 +240,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.boolean "is_active", default: true
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "brand" ], name: "index_payment_methods_on_brand"
-    t.index [ "is_active" ], name: "index_payment_methods_on_is_active"
-    t.index [ "is_default" ], name: "index_payment_methods_on_is_default"
-    t.index [ "stripe_payment_method_id" ], name: "index_payment_methods_on_stripe_payment_method_id", unique: true
-    t.index [ "type" ], name: "index_payment_methods_on_type"
-    t.index [ "user_id", "is_active" ], name: "index_payment_methods_on_user_id_and_is_active"
-    t.index [ "user_id", "is_default" ], name: "index_payment_methods_on_user_id_and_is_default"
-    t.index [ "user_id", "type" ], name: "index_payment_methods_on_user_id_and_type"
-    t.index [ "user_id" ], name: "index_payment_methods_on_user_id"
+    t.index ["brand"], name: "index_payment_methods_on_brand"
+    t.index ["is_active"], name: "index_payment_methods_on_is_active"
+    t.index ["is_default"], name: "index_payment_methods_on_is_default"
+    t.index ["stripe_payment_method_id"], name: "index_payment_methods_on_stripe_payment_method_id", unique: true
+    t.index ["type"], name: "index_payment_methods_on_type"
+    t.index ["user_id", "is_active"], name: "index_payment_methods_on_user_id_and_is_active"
+    t.index ["user_id", "is_default"], name: "index_payment_methods_on_user_id_and_is_default"
+    t.index ["user_id", "type"], name: "index_payment_methods_on_user_id_and_type"
+    t.index ["user_id"], name: "index_payment_methods_on_user_id"
     t.check_constraint "exp_month >= 1 AND exp_month <= 12", name: "check_payment_methods_exp_month"
     t.check_constraint "type::text = ANY (ARRAY['card'::character varying, 'bank_account'::character varying, 'sepa_debit'::character varying]::text[])", name: "check_payment_methods_type"
   end
@@ -253,18 +266,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.string "invoice_id", limit: 255
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "amount" ], name: "index_payments_on_amount"
-    t.index [ "created_at" ], name: "index_payments_on_created_at"
-    t.index [ "currency" ], name: "index_payments_on_currency"
-    t.index [ "payment_method_type" ], name: "index_payments_on_payment_method_type"
-    t.index [ "status", "created_at" ], name: "index_payments_on_status_and_created_at"
-    t.index [ "status" ], name: "index_payments_on_status"
-    t.index [ "stripe_payment_intent_id" ], name: "index_payments_on_stripe_payment_intent_id", unique: true
-    t.index [ "subscription_id", "created_at" ], name: "index_payments_on_subscription_id_and_created_at"
-    t.index [ "subscription_id" ], name: "index_payments_on_subscription_id"
-    t.index [ "user_id", "created_at" ], name: "index_payments_on_user_id_and_created_at"
-    t.index [ "user_id", "status" ], name: "index_payments_on_user_id_and_status"
-    t.index [ "user_id" ], name: "index_payments_on_user_id"
+    t.index ["amount"], name: "index_payments_on_amount"
+    t.index ["created_at"], name: "index_payments_on_created_at"
+    t.index ["currency"], name: "index_payments_on_currency"
+    t.index ["payment_method_type"], name: "index_payments_on_payment_method_type"
+    t.index ["status", "created_at"], name: "index_payments_on_status_and_created_at"
+    t.index ["status"], name: "index_payments_on_status"
+    t.index ["stripe_payment_intent_id"], name: "index_payments_on_stripe_payment_intent_id", unique: true
+    t.index ["subscription_id", "created_at"], name: "index_payments_on_subscription_id_and_created_at"
+    t.index ["subscription_id"], name: "index_payments_on_subscription_id"
+    t.index ["user_id", "created_at"], name: "index_payments_on_user_id_and_created_at"
+    t.index ["user_id", "status"], name: "index_payments_on_user_id_and_status"
+    t.index ["user_id"], name: "index_payments_on_user_id"
     t.check_constraint "status::text = ANY (ARRAY['succeeded'::character varying, 'pending'::character varying, 'failed'::character varying, 'canceled'::character varying, 'requires_action'::character varying]::text[])", name: "check_payments_status"
   end
 
@@ -276,11 +289,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.json "metadata", comment: "追加データ（JSON）"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "created_at" ], name: "index_reflection_marks_on_created_at"
-    t.index [ "date" ], name: "index_reflection_marks_on_date"
-    t.index [ "mark_type" ], name: "index_reflection_marks_on_mark_type"
-    t.index [ "user_id", "date" ], name: "index_reflection_marks_on_user_and_date", unique: true
-    t.index [ "user_id" ], name: "index_reflection_marks_on_user_id"
+    t.index ["created_at"], name: "index_reflection_marks_on_created_at"
+    t.index ["date"], name: "index_reflection_marks_on_date"
+    t.index ["mark_type"], name: "index_reflection_marks_on_mark_type"
+    t.index ["user_id", "date"], name: "index_reflection_marks_on_user_and_date", unique: true
+    t.index ["user_id"], name: "index_reflection_marks_on_user_id"
   end
 
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -298,15 +311,15 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.string "billing_cycle", limit: 20
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "billing_cycle" ], name: "index_subscriptions_on_billing_cycle"
-    t.index [ "current_period_end" ], name: "index_subscriptions_on_current_period_end"
-    t.index [ "plan_name" ], name: "index_subscriptions_on_plan_name"
-    t.index [ "status", "current_period_end" ], name: "index_subscriptions_on_status_and_current_period_end"
-    t.index [ "status" ], name: "index_subscriptions_on_status"
-    t.index [ "stripe_price_id" ], name: "index_subscriptions_on_stripe_price_id"
-    t.index [ "stripe_subscription_id" ], name: "index_subscriptions_on_stripe_subscription_id", unique: true
-    t.index [ "user_id", "status" ], name: "index_subscriptions_on_user_id_and_status"
-    t.index [ "user_id" ], name: "index_subscriptions_on_user_id"
+    t.index ["billing_cycle"], name: "index_subscriptions_on_billing_cycle"
+    t.index ["current_period_end"], name: "index_subscriptions_on_current_period_end"
+    t.index ["plan_name"], name: "index_subscriptions_on_plan_name"
+    t.index ["status", "current_period_end"], name: "index_subscriptions_on_status_and_current_period_end"
+    t.index ["status"], name: "index_subscriptions_on_status"
+    t.index ["stripe_price_id"], name: "index_subscriptions_on_stripe_price_id"
+    t.index ["stripe_subscription_id"], name: "index_subscriptions_on_stripe_subscription_id", unique: true
+    t.index ["user_id", "status"], name: "index_subscriptions_on_user_id_and_status"
+    t.index ["user_id"], name: "index_subscriptions_on_user_id"
     t.check_constraint "billing_cycle::text = ANY (ARRAY['monthly'::character varying, 'yearly'::character varying]::text[])", name: "check_subscriptions_billing_cycle"
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'canceled'::character varying, 'incomplete'::character varying, 'incomplete_expired'::character varying, 'past_due'::character varying, 'trialing'::character varying, 'unpaid'::character varying]::text[])", name: "check_subscriptions_status"
   end
@@ -316,8 +329,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.text "description"
     t.boolean "is_public", default: false
     t.datetime "updated_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.index [ "is_public" ], name: "index_system_settings_on_is_public"
-    t.index [ "updated_at" ], name: "index_system_settings_on_updated_at"
+    t.index ["is_public"], name: "index_system_settings_on_is_public"
+    t.index ["updated_at"], name: "index_system_settings_on_updated_at"
   end
 
   create_table "user_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -326,10 +339,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.text "setting_value", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index [ "created_at" ], name: "index_user_settings_on_created_at"
-    t.index [ "setting_key" ], name: "index_user_settings_on_setting_key"
-    t.index [ "user_id", "setting_key" ], name: "index_user_settings_unique", unique: true
-    t.index [ "user_id" ], name: "index_user_settings_on_user_id"
+    t.index ["created_at"], name: "index_user_settings_on_created_at"
+    t.index ["setting_key"], name: "index_user_settings_on_setting_key"
+    t.index ["user_id", "setting_key"], name: "index_user_settings_unique", unique: true
+    t.index ["user_id"], name: "index_user_settings_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -350,10 +363,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.boolean "slack_notification_enabled", default: false, null: false
     t.string "slack_webhook_url"
     t.string "billing_status", default: "false"
-    t.index [ "email" ], name: "index_users_on_email", unique: true
-    t.index [ "is_active" ], name: "index_users_on_is_active"
-    t.index [ "provider", "uid" ], name: "index_users_on_provider_and_uid", unique: true
-    t.index [ "stripe_customer_id" ], name: "index_users_on_stripe_customer_id", unique: true, where: "(stripe_customer_id IS NOT NULL)"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["is_active"], name: "index_users_on_is_active"
+    t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
+    t.index ["stripe_customer_id"], name: "index_users_on_stripe_customer_id", unique: true, where: "(stripe_customer_id IS NOT NULL)"
   end
 
   create_table "work_log_kpt_links", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -362,11 +375,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.integer "relevance_score"
     t.text "notes"
     t.datetime "created_at", precision: nil, default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.index [ "created_at" ], name: "index_work_log_kpt_links_on_created_at"
-    t.index [ "kpt_session_id" ], name: "index_work_log_kpt_links_on_kpt_session_id"
-    t.index [ "relevance_score" ], name: "index_work_log_kpt_links_on_relevance_score"
-    t.index [ "work_log_id", "kpt_session_id" ], name: "index_work_log_kpt_links_unique", unique: true
-    t.index [ "work_log_id" ], name: "index_work_log_kpt_links_on_work_log_id"
+    t.index ["created_at"], name: "index_work_log_kpt_links_on_created_at"
+    t.index ["kpt_session_id"], name: "index_work_log_kpt_links_on_kpt_session_id"
+    t.index ["relevance_score"], name: "index_work_log_kpt_links_on_relevance_score"
+    t.index ["work_log_id", "kpt_session_id"], name: "index_work_log_kpt_links_unique", unique: true
+    t.index ["work_log_id"], name: "index_work_log_kpt_links_on_work_log_id"
     t.check_constraint "relevance_score >= 1 AND relevance_score <= 5", name: "check_work_log_kpt_links_relevance_score"
   end
 
@@ -389,16 +402,16 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.virtual "duration_minutes", type: :integer, as: "\nCASE\n    WHEN (ended_at IS NOT NULL) THEN (EXTRACT(epoch FROM (ended_at - started_at)) / (60)::numeric)\n    ELSE NULL::numeric\nEND", stored: true
-    t.index [ "category" ], name: "index_work_logs_on_category"
-    t.index [ "duration_minutes" ], name: "index_work_logs_on_duration_minutes"
-    t.index [ "ended_at" ], name: "index_work_logs_on_ended_at"
-    t.index [ "is_billable" ], name: "index_work_logs_on_is_billable"
-    t.index [ "project_name" ], name: "index_work_logs_on_project_name"
-    t.index [ "started_at", "ended_at" ], name: "index_work_logs_on_started_at_and_ended_at"
-    t.index [ "started_at" ], name: "index_work_logs_on_started_at"
-    t.index [ "status" ], name: "index_work_logs_on_status"
-    t.index [ "tags" ], name: "index_work_logs_on_tags", using: :gin
-    t.index [ "user_id" ], name: "index_work_logs_on_user_id"
+    t.index ["category"], name: "index_work_logs_on_category"
+    t.index ["duration_minutes"], name: "index_work_logs_on_duration_minutes"
+    t.index ["ended_at"], name: "index_work_logs_on_ended_at"
+    t.index ["is_billable"], name: "index_work_logs_on_is_billable"
+    t.index ["project_name"], name: "index_work_logs_on_project_name"
+    t.index ["started_at", "ended_at"], name: "index_work_logs_on_started_at_and_ended_at"
+    t.index ["started_at"], name: "index_work_logs_on_started_at"
+    t.index ["status"], name: "index_work_logs_on_status"
+    t.index ["tags"], name: "index_work_logs_on_tags", using: :gin
+    t.index ["user_id"], name: "index_work_logs_on_user_id"
     t.check_constraint "difficulty_score >= 1 AND difficulty_score <= 5", name: "check_work_logs_difficulty_score"
     t.check_constraint "mood_score >= 1 AND mood_score <= 5", name: "check_work_logs_mood_score"
     t.check_constraint "productivity_score >= 1 AND productivity_score <= 5", name: "check_work_logs_productivity_score"
@@ -410,6 +423,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_014203) do
   add_foreign_key "feedbacks", "feedback_priorities"
   add_foreign_key "feedbacks", "feedback_types"
   add_foreign_key "feedbacks", "users"
+  add_foreign_key "github_issues", "users"
   add_foreign_key "goals", "users"
   add_foreign_key "insights", "kpt_sessions"
   add_foreign_key "insights", "users"
