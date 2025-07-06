@@ -20,8 +20,6 @@ class Api::V1::KptSessionsController < ApplicationController
   # KPTセッション一覧を取得
   def index
     begin
-      Rails.logger.info "KPTセッション一覧取得開始 - User ID: #{current_user.id}, パラメータ: #{params.inspect}"
-      
       sessions = current_user.kpt_sessions.includes(:kpt_items)
 
       # フィルター適用
@@ -77,8 +75,6 @@ class Api::V1::KptSessionsController < ApplicationController
       # データ整形
       sessions_data = sessions.map { |session| format_session_summary(session) }
 
-      Rails.logger.info "KPTセッション一覧取得完了 - 取得件数: #{sessions_data.length}, 総件数: #{total_count}"
-
       render json: {
         success: true,
         data: {
@@ -88,19 +84,14 @@ class Api::V1::KptSessionsController < ApplicationController
         message: "セッション一覧を取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPTセッション一覧取得エラー - User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "セッション一覧の取得中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
 
   # セッション詳細を取得
   def show
-    begin
-      Rails.logger.info "KPTセッション詳細取得開始 - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}"
-      
+    begin      
       session_data = format_session_detail(@kpt_session)
-
-      Rails.logger.info "KPTセッション詳細取得完了 - Session ID: #{@kpt_session.id}"
 
       render json: {
         success: true,
@@ -108,16 +99,13 @@ class Api::V1::KptSessionsController < ApplicationController
         message: "セッション詳細を取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPTセッション詳細取得エラー - Session ID: #{@kpt_session&.id}, User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "セッション詳細の取得中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
 
   # セッションを作成
   def create
-    begin
-      Rails.logger.info "KPTセッション作成開始 - User ID: #{current_user.id}, パラメータ: #{params.inspect}"
-      
+    begin      
       @kpt_session = current_user.kpt_sessions.build(session_params)
 
       if @kpt_session.save
@@ -125,19 +113,11 @@ class Api::V1::KptSessionsController < ApplicationController
         create_kpt_items_from_params
 
         session_data = format_session_detail(@kpt_session)
-
-        # Slack通知を非同期で実行
-        Rails.logger.info "KPTセッション作成: Slack通知ジョブを実行します - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}"
         
         begin
           SlackNotificationJob.perform_later(@kpt_session.id)
-          Rails.logger.info "KPTセッション作成: Slack通知ジョブを実行しました"
         rescue => e
-          Rails.logger.error "KPTセッション作成: Slack通知ジョブの実行に失敗しました - Error: #{e.message}, Backtrace: #{e.backtrace.first(3).join(', ')}"
-          # ジョブの失敗はセッション作成の成功を妨げない
         end
-
-        Rails.logger.info "KPTセッション作成完了 - Session ID: #{@kpt_session.id}"
 
         render json: {
           success: true,
@@ -145,7 +125,6 @@ class Api::V1::KptSessionsController < ApplicationController
           message: "セッションを作成しました"
         }, status: :created
       else
-        Rails.logger.warn "KPTセッション作成失敗 - User ID: #{current_user.id}, エラー: #{@kpt_session.errors.full_messages}"
         render json: {
           success: false,
           error: "セッションの作成に失敗しました",
@@ -153,7 +132,6 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue ActionController::ParameterMissing => e
-      Rails.logger.error "KPTセッション作成: パラメータ不足エラー - User ID: #{current_user.id}, Error: #{e.message}, 受信パラメータ: #{params.inspect}"
       render json: {
         success: false,
         error: "リクエストパラメータが不足しています",
@@ -169,7 +147,6 @@ class Api::V1::KptSessionsController < ApplicationController
         }
       }, status: :bad_request
     rescue StandardError => e
-      Rails.logger.error "KPTセッション作成エラー - User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "セッションの作成中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
@@ -177,12 +154,10 @@ class Api::V1::KptSessionsController < ApplicationController
   # セッションを更新
   def update
     begin
-      Rails.logger.info "KPTセッション更新開始 - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}, パラメータ: #{session_params.inspect}"
       
       if @kpt_session.update(session_params)
         session_data = format_session_detail(@kpt_session)
 
-        Rails.logger.info "KPTセッション更新完了 - Session ID: #{@kpt_session.id}"
 
         render json: {
           success: true,
@@ -190,7 +165,6 @@ class Api::V1::KptSessionsController < ApplicationController
           message: "セッションを更新しました"
         }, status: :ok
       else
-        Rails.logger.warn "KPTセッション更新失敗 - Session ID: #{@kpt_session.id}, エラー: #{@kpt_session.errors.full_messages}"
         render json: {
           success: false,
           error: "セッションの更新に失敗しました",
@@ -198,7 +172,6 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPTセッション更新エラー - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "セッションの更新中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
@@ -206,17 +179,14 @@ class Api::V1::KptSessionsController < ApplicationController
   # セッションを削除
   def destroy
     begin
-      Rails.logger.info "KPTセッション削除開始 - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}"
       
       if @kpt_session.destroy
-        Rails.logger.info "KPTセッション削除完了 - Session ID: #{@kpt_session.id}"
 
         render json: {
           success: true,
           message: "セッションを削除しました"
         }, status: :ok
       else
-        Rails.logger.warn "KPTセッション削除失敗 - Session ID: #{@kpt_session.id}, エラー: #{@kpt_session.errors.full_messages}"
         render json: {
           success: false,
           error: "セッションの削除に失敗しました",
@@ -224,7 +194,6 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPTセッション削除エラー - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "セッションの削除中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
@@ -233,10 +202,8 @@ class Api::V1::KptSessionsController < ApplicationController
   def save_template
     begin
       template_name = params[:template_name]
-      Rails.logger.info "KPTセッションテンプレート保存開始 - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}, テンプレート名: #{template_name}"
 
       if template_name.blank?
-        Rails.logger.warn "KPTセッションテンプレート保存失敗 - テンプレート名が空です"
         render json: {
           success: false,
           error: "テンプレート名を入力してください"
@@ -249,15 +216,12 @@ class Api::V1::KptSessionsController < ApplicationController
       if template.persisted?
         template_data = format_session_detail(template)
 
-        Rails.logger.info "KPTセッションテンプレート保存完了 - Template ID: #{template.id}"
-
         render json: {
           success: true,
           data: template_data,
           message: "テンプレートとして保存しました"
         }, status: :created
       else
-        Rails.logger.warn "KPTセッションテンプレート保存失敗 - エラー: #{template.errors.full_messages}"
         render json: {
           success: false,
           error: "テンプレートの保存に失敗しました",
@@ -265,7 +229,6 @@ class Api::V1::KptSessionsController < ApplicationController
         }, status: :unprocessable_entity
       end
     rescue StandardError => e
-      Rails.logger.error "KPTセッションテンプレート保存エラー - Session ID: #{@kpt_session.id}, User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "テンプレート保存中にエラーが発生しました: #{e.message}", status: :internal_server_error)
     end
   end
@@ -276,8 +239,6 @@ class Api::V1::KptSessionsController < ApplicationController
       start_date = params[:start_date]&.to_date || 30.days.ago.to_date
       end_date = params[:end_date]&.to_date || Date.current
       
-      Rails.logger.info "KPTセッション統計取得開始 - User ID: #{current_user.id}, 期間: #{start_date} 〜 #{end_date}"
-
       sessions = current_user.kpt_sessions.by_date_range(start_date, end_date)
 
       stats_data = {
@@ -304,15 +265,12 @@ class Api::V1::KptSessionsController < ApplicationController
         }
       }
 
-      Rails.logger.info "KPTセッション統計取得完了 - User ID: #{current_user.id}, セッション数: #{stats_data[:totals][:sessions_count]}"
-
       render json: {
         success: true,
         data: stats_data,
         message: "セッション統計を取得しました"
       }, status: :ok
     rescue StandardError => e
-      Rails.logger.error "KPTセッション統計取得エラー - User ID: #{current_user.id}, Error: #{e.message}, Backtrace: #{e.backtrace.first(5).join(', ')}"
       render_error(error: "統計データの取得に失敗しました: #{e.message}", status: :internal_server_error)
     end
   end
@@ -438,7 +396,6 @@ class Api::V1::KptSessionsController < ApplicationController
     if items_to_create.any?
       @kpt_session.kpt_items.create(items_to_create)
       @kpt_session.reload
-      Rails.logger.info "パラメータからKPTアイテムを作成しました - Session ID: #{@kpt_session.id}, 作成数: #{items_to_create.count}"
     end
   end
 
