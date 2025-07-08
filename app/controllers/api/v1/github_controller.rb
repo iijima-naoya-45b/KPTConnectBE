@@ -121,10 +121,12 @@ class Api::V1::GithubController < ApplicationController
   # GitHub API GET
   def github_api_get(url)
     headers = { "Accept" => "application/vnd.github+json" }
-    headers["Authorization"] = "token \\#{github_token}" if github_token.present?
+    headers["Authorization"] = "token #{github_token}" if github_token.present?
     res = Faraday.get(url, nil, headers)
     Rails.logger.info("GitHub API Response Status: \\#{res.status}")
     Rails.logger.info("GitHub API Response Body: \\#{res.body}")
+    Rails.logger.info("GitHub API URL: #{url}")
+    Rails.logger.info("GitHub token: #{github_token.inspect}")
     JSON.parse(res.body) if res.status == 200
   rescue => e
     Rails.logger.error("Error in github_api_get: \\#{e.message}")
