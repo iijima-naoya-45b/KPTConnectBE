@@ -2,8 +2,14 @@ Rails.application.routes.draw do
   root to: proc { [ 200, { "Content-Type" => "text/plain" }, [ "OK" ] ] }
   namespace :api do
     namespace :v1 do
+      resources :todos, only: [:index, :create, :show] do
+        collection do
+          post :suggest
+        end
+      end
       # 認証
       post "oauth/:provider", to: "oauths#oauth", as: :auth_at_provider
+      get "oauth/:provider/callback", to: "oauths#callback", as: :auth_callback
       # get "oauth/callback/:provider", to: "oauths#callback", as: :callback_api_v1_oauths この記述ではエラーになる。
       # /api/v1/oauth/callback?provider=google&code=... のようなpathパラメータではなく、クエリパラのため
 
@@ -165,6 +171,12 @@ Rails.application.routes.draw do
 
       post "create-payment-intent", to: "payments#create_payment_intent"
       post "create-subscription", to: "payments#create_subscription"
+
+      resources :todos, only: [] do
+        collection do
+          post :suggest
+        end
+      end
     end
   end
   post "/webhook", to: "webhook#receive"

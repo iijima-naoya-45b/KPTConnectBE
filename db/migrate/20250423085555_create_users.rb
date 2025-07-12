@@ -13,3 +13,9 @@ class CreateUsers < ActiveRecord::Migration[8.0]
     add_index :users, :email, unique: true
   end
 end
+
+class AddStsToTodos < ActiveRecord::Migration[6.0]
+  def change
+    add_column :todos, :sts, :string, default: '未着手'
+  end
+end

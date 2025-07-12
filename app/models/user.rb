@@ -36,6 +36,7 @@ class User < ApplicationRecord
   has_many :reflection_marks, dependent: :destroy
   has_many :goals
   has_many :github_issues
+  has_many :todos, dependent: :destroy
 
   # バリデーション
   validates :email, presence: true, uniqueness: true, format: { with: URI::MailTo::EMAIL_REGEXP }
