@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_06_120013) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_12_051057) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -333,6 +333,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_120013) do
     t.index ["updated_at"], name: "index_system_settings_on_updated_at"
   end
 
+  create_table "todos", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "title"
+    t.text "description"
+    t.date "deadline"
+    t.integer "priority"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "status"
+    t.index ["user_id"], name: "index_todos_on_user_id"
+  end
+
   create_table "user_settings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "setting_key", limit: 100, null: false
@@ -436,6 +448,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_06_120013) do
   add_foreign_key "payments", "users"
   add_foreign_key "reflection_marks", "users"
   add_foreign_key "subscriptions", "users"
+  add_foreign_key "todos", "users"
   add_foreign_key "user_settings", "users"
   add_foreign_key "work_log_kpt_links", "kpt_sessions"
   add_foreign_key "work_log_kpt_links", "work_logs"
