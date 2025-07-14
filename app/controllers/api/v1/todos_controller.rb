@@ -29,7 +29,8 @@ class Api::V1::TodosController < ApplicationController
           title: todo_data["title"],
           description: todo_data["description"],
           deadline: todo_data["deadline"],
-          priority: todo_data["priority"]
+          priority: todo_data["priority"],
+          status: todo_data["status"]
         )
 
         unless todo.save
@@ -68,6 +69,17 @@ class Api::V1::TodosController < ApplicationController
     render json: { error: 'Todo not found' }, status: :not_found
   end
 
+  def update
+    todo = current_user.todos.find(params[:id])
+    if todo.update(status: params[:todo][:status])
+      render json: todo, status: :ok
+    else
+      render json: { errors: todo.errors.full_messages }, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Todo not found' }, status: :not_found
+  end
+
   private
 
   def create_todo_prompt(prompt_params)
@@ -88,13 +100,14 @@ class Api::V1::TodosController < ApplicationController
           "title": "Todoタイトル",
           "description": "Todoの詳細説明",
           "deadline": "YYYY-MM-DD",
-          "priority": "高"
+          "priority": "高",
+          "status": "open"
         }
       ]
     PROMPT
   end
 
   def todo_params
-    params.require(:todo).permit(:title, :description, :deadline, :priority)
+    params.require(:todo).permit(:title, :description, :deadline, :priority, :status)
   end
 end
