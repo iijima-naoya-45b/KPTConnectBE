@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_12_051057) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_13_105853) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -74,6 +74,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_12_051057) do
     t.string "icon_name", limit: 50, comment: "アイコン名"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "type"
     t.index ["is_active", "display_order"], name: "index_feedback_types_on_active_and_order"
     t.index ["key"], name: "index_feedback_types_on_key", unique: true
   end
@@ -92,6 +93,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_12_051057) do
     t.boolean "is_active", default: true, null: false, comment: "アクティブ状態"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "type"
+    t.integer "feedbackCategory"
     t.index ["feedback_priority_id"], name: "index_feedbacks_on_feedback_priority_id"
     t.index ["feedback_priority_id"], name: "index_feedbacks_on_priority"
     t.index ["feedback_type_id"], name: "index_feedbacks_on_feedback_type_id"

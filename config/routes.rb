@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   root to: proc { [ 200, { "Content-Type" => "text/plain" }, [ "OK" ] ] }
   namespace :api do
     namespace :v1 do
-      resources :todos, only: [:index, :create, :show] do
+      resources :todos, only: [:create, :index, :show, :update] do
         collection do
           post :suggest
         end
