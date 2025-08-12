@@ -48,7 +48,7 @@ gem "dotenv-rails"
 # Gemfile
 gem "redis"
 
-gem "ruby-openai", "~> 7.0"
+gem "ruby-openai", "~> 8.2"
 
 # Slack通知
 gem "slack-notifier"
