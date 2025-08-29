@@ -156,7 +156,7 @@ GEM
       hashie
     faraday-multipart (1.1.0)
       multipart-post (~> 2.0)
-    faraday-net_http (3.4.0)
+    faraday-net_http (3.4.1)
       net-http (>= 0.5.0)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
@@ -201,7 +201,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    json (2.10.2)
+    json (2.13.2)
     jwt (2.10.1)
       base64
     kamal (2.5.3)
@@ -412,7 +412,7 @@ GEM
       rubocop (>= 1.72)
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
-    ruby-openai (7.4.0)
+    ruby-openai (8.3.0)
       event_stream_parser (>= 0.3.0, < 2.0.0)
       faraday (>= 1)
       faraday-multipart (>= 1)
@@ -537,7 +537,7 @@ DEPENDENCIES
   reek
   rubocop
   rubocop-rails-omakase
-  ruby-openai (~> 7.0)
+  ruby-openai (~> 8.3)
   slack-notifier
   slack-ruby-bot-server
   slack-ruby-client
